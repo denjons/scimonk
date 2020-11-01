@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>sciMonk HTML5 canvas editor</title>
+    <meta name="description" content="HTML5 canvas editor" />
+    <meta name="author" content="Dennis Jönsson" />
+    <meta name="email" content="dennis.j@live.se" />
+    <meta name="keywords" content="html5, canvas, 3d, editor" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+    <link
+      rel="stylesheet"
+      href="css/control.css"
+      type="text/css"
+      media="screen"
+    />
+    <link
+      rel="stylesheet"
+      href="css/layout.css"
+      type="text/css"
+      media="screen"
+    />
+    <link
+      rel="stylesheet"
+      href="css/button_styles.css"
+      type="text/css"
+      media="screen"
+    />
+
+    <!-- 3d -->
+    <script type="text/javascript" src="./src/main3D.js"></script>
+    <script type="text/javascript" src="./src/graph.js"></script>
+    <script type="text/javascript" src="./src/utils.js"></script>
+
+    <!--<script type="text/javascript" src="lib/js/pipe.js"></script>-->
+
+    <!-- API's -->
+    <script type="text/javascript" src="src/REST_API.js"></script>
+    <script
+      type="text/javascript"
+      src="http://www.dennisjonsson.com/javascript/REST_API.js"
+    ></script>
+
+    <!--editor-->
+    <script type="text/javascript" src="./src/gui.js"></script>
+    <script type="text/javascript" src="./src/editor.js"></script>
+    <script type="text/javascript" src="./src/editorUtils.js"></script>
+  </head>
+
+  <body onkeydown="keyDownEvt(event);" onkeyup="keyUpEvt()" id="body">
+    <div id="wraper">
+      <div id="workSpace">
+        <div id="canvasDiv">
+          <canvas
+            id="canvas"
+            width="500"
+            height="500"
+            style="background: white"
+          ></canvas>
+        </div>
+        <div id="control">
+          <table>
+            <tr>
+              <td>
+                <table>
+                  <tr>
+                    <td>
+                      <button
+                        class="controlBtn"
+                        style="background-image: url(css/imgs/leftuparrow.png)"
+                        id="rotatePerspClockwise"
+                        class="button_type_5"
+                      ></button>
+                    </td>
+                    <td>
+                      <button
+                        class="controlBtn"
+                        style="background-image: url(css/imgs/uparrow.png)"
+                        id="rotatePerspUp"
+                        style="font-size: 25px"
+                        class="button_type_5"
+                      ></button>
+                    </td>
+                    <td>
+                      <button
+                        class="controlBtn"
+                        style="background-image: url(css/imgs/rightuparrow.png)"
+                        id="rotatePerspAntiClockwise"
+                        class="button_type_5"
+                      ></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <button
+                        class="controlBtn"
+                        style="background-image: url(css/imgs/leftarrow.png)"
+                        id="rotatePerspLeft"
+                        class="button_type_5"
+                      ></button>
+                    </td>
+                    <td>
+                      <button
+                        class="controlBtn"
+                        style="background-image: url(css/imgs/ball.png)"
+                        id="resetView"
+                      ></button>
+                    </td>
+                    <td>
+                      <button
+                        class="controlBtn"
+                        style="background-image: url(css/imgs/rightarrow.png)"
+                        id="rotatePerspRight"
+                        class="button_type_5"
+                      ></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <button
+                        class="controlBtn"
+                        style="background-image: url(css/imgs/plus.png)"
+                        id="movePerspForeward"
+                        class="button_type_5"
+                      ></button>
+                    </td>
+                    <td>
+                      <button
+                        class="controlBtn"
+                        style="background-image: url(css/imgs/downarrow.png)"
+                        id="rotatePerspDown"
+                        class="button_type_5"
+                      ></button>
+                    </td>
+                    <td>
+                      <button
+                        class="controlBtn"
+                        style="background-image: url(css/imgs/minus.png)"
+                        id="movePerspBack"
+                        class="button_type_5"
+                      ></button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td></td>
+                    <td>
+                      <button
+                        class="controlBtn"
+                        style="background-image: url(css/imgs/uparrow.png)"
+                        id="movePerspUp"
+                        class="button_type_5"
+                      ></button>
+                    </td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <button
+                        class="controlBtn"
+                        style="background-image: url(css/imgs/leftarrow.png)"
+                        id="movePerspLeft"
+                        class="button_type_5"
+                      ></button>
+                    </td>
+                    <td>
+                      <button
+                        class="controlBtn"
+                        style="background-image: url(css/imgs/downarrow.png)"
+                        id="movePerspDown"
+                        class="button_type_5"
+                      ></button>
+                    </td>
+                    <td>
+                      <button
+                        class="controlBtn"
+                        style="background-image: url(css/imgs/rightarrow.png)"
+                        id="movePerspRight"
+                        class="button_type_5"
+                      ></button>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+              <td></td>
+            </tr>
+            <tr>
+              <!--<td><label>DrawMethod</label>
+							<input id="drawMethod" type="number" onChange="setDrawMethod(this.value)"></td>-->
+            </tr>
+          </table>
+          <button
+            id="snapShot"
+            style="background-image: url(css/imgs/camera.png)"
+          ></button>
+        </div>
+        <div id="inputPanel">
+          <table>
+            <tr>
+              <td>
+                <button id="addStruct" style="background: #ff1493">
+                  add nodes
+                </button>
+              </td>
+              <td>
+                <button id="save" style="background: #71f6af">
+                  save model
+                </button>
+              </td>
+              <td>
+                <button id="source" style="background: #82ccdb">
+                  get source
+                </button>
+              </td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="container">
+                  <label>Lines</label><input type="checkbox" id="lines" />
+                </div>
+              </td>
+              <td>
+                <div class="container">
+                  <label>Fill</label><input type="checkbox" id="fill" />
+                </div>
+              </td>
+              <!--<td><div class="container"><label>Nodes</label><input type="checkbox" id="nodes"  /></div></td>-->
+              <td>
+                <div class="container">
+                  <label>Crosshair</label
+                  ><input type="checkbox" id="crossHair" />
+                </div>
+              </td>
+              <td>
+                <div class="container">
+                  <label>Graph</label><input type="checkbox" id="drawGraph" />
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div id="console">
+          <div>
+            <p>Console</p>
+          </div>
+          <div id="message"></div>
+        </div>
+        <div id="shapeList"></div>
+        <div id="shapes">
+          <div id="shapesControl"></div>
+          <div class="divHeader">
+            <h3>Shapes</h3>
+          </div>
+          <button
+            id="box"
+            title="box"
+            style="background-image: url(css/imgs/box.png)"
+            class="shapeImg"
+          ></button>
+          <button
+            id="sphere"
+            title="sphere"
+            style="background-image: url(css/imgs/sphere.png)"
+            class="shapeImg"
+          ></button>
+          <button
+            id="cylinder"
+            title="cylinder"
+            style="background-image: url(css/imgs/cylinder.png)"
+            class="shapeImg"
+          ></button>
+          <button
+            id="cone"
+            title="cone"
+            style="background-image: url(css/imgs/cone.png)"
+            class="shapeImg"
+          ></button>
+          <button
+            id="node"
+            title="node"
+            style="background-image: url(css/imgs/node.png)"
+            class="shapeImg"
+          ></button>
+          <div class="colorBox">
+            <label>Color</label>
+            <input type="color" id="colourPicker" />
+          </div>
+        </div>
+      </div>
+
+      <div id="help">
+        <h2>How to</h2>
+        <h2>Work with shapes</h2>
+        <p>Pick a shape from the list</p>
+        <img src="css/imgs/boxshape1.png" height="100" />
+        <p>Rotate it and move it in depth, using the following keys</p>
+        <img src="css/imgs/rotatectrl.png" />
+        <p>Hold down shift to scale the shape using the same keys</p>
+        <img src="css/imgs/scalectrl.png" />
+        <p>Now, choose a colour, using the field below the shape-list</p>
+        <p>Finally place the shape somewhere by left clicking</p>
+        <br />
+        <p>
+          If you are working with a sphere, cone or cylinder, you can change the
+          number of nodes in structure by holding down r for more nodes, and f
+          for less.
+        </p>
+        <img src="css/imgs/nodesctrl.png" />
+        <h2>Work with nodes</h2>
+        <p>
+          Place nodes i plane to create a slice of a shape. Press enter and a
+          flat surface should appear. Now, move the cross-hair to a new plane
+          (using z and c-keys) and create yet another slice. When you press
+          enter this time, the two slices will be connected, thus forming a new
+          shape. When you are finished, click the add-struct-button.
+        </p>
+        <h2>Save a shape</h2>
+        <p>
+          Click the 'save shape'-button and save dialogue should appear. Enter
+          the name of your fancy model and you alias, then click save. The model
+          will stored on the server and displayed on the website. Anyone can
+          then later view and also edit the model.
+        </p>
+        <h2>Get source code</h2>
+        <p>
+          Click the 'get source'-button and dialogue with the source code for
+          your model will appear. Just copy the code and paste it into a
+          html-document and the model should then be visible if you open the
+          document in your browser.
+        </p>
+      </div>
+    </div>
+    <script type="text/javascript" id="editorScript">
+      iniGUI();
+      sciMonk.init(document.getElementById("canvas"));
+      iniEditor(
+        document.getElementById("canvasDiv"),
+        document.getElementById("message"),
+        document.getElementById("shapesControl")
+      );
+      sciMonk.moveMax = 500;
+
+      sciMonk.reset = function () {
+        sciMonk.xMove = 0;
+        sciMonk.yMove = 0;
+        sciMonk.zMove = 0;
+        sciMonk.yRzRot = 0;
+        sciMonk.xRzRot = 0;
+        sciMonk.xRyRot = 0;
+      };
+
+      sciMonk.shadow = true;
+      sciMonk.draw = function () {
+        if (sciMonk.drawGraph) {
+          var i = 0;
+          for (i = 0; i < 11; i++) {
+            nodeVector(
+              [250 - 50 * i, 0, 250],
+              [250 - 50 * i, 0, -250],
+              [20, 20, 150, 250]
+            );
+            nodeVector(
+              [250, 0, 250 - 50 * i],
+              [-250, 0, 250 - 50 * i],
+              [20, 20, 150, 250]
+            );
+          }
+        } else {
+          sciMonk.shadow = false;
+        }
+        //var testCord = [[100,100,0],[-100,100,0],[-100,-100,0],[100,-100,0]];
+        //fill(testCord,[10,10,10,250],1);
+        //fillPlane(testCord,[10,10,10,250],1);
+      };
+      //sciMonk.zMove = 0;
+      sciMonk.update = true;
+      //sciMonk.PHP.ping();
+
+      function loadSelectedModel() {
+        if (refactorId > 0) {
+          loadModelRequest(refactorId);
+        }
+      }
+      loadSelectedModel();
+      sciMonk.reset();
+    </script>
+  </body>
+</html>

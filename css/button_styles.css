@@ -1,0 +1,94 @@
+.button_type_1{
+    color:white;
+    margin-top:0px;
+    /*background-image:url(imgs/button.png);*/
+    font-family:Helvetica;
+    font-weight:800;
+	font-size:15px;
+    cursor:pointer;
+	-moz-border-radius:5px;
+	border-radius:5px;
+	/*text-shadow:#888888 1px 1px 0;*/
+	/*-webkit-box-shadow:rgba(0,0,0,0.2) 0 2px 0 0 black;
+	-moz-box-shadow:rgba(0,0,0,0.2) 0 2px 0 0 black;*/
+	border:none;
+}
+.button_type_1:hover
+{
+    color:#3399ff;
+	box-shadow: inset 0 0 20px #ffffff;
+    -moz-box-shadow: inset 0 0 20px #ffffff;
+    box-shadow: inset 0 0 20px #444444;
+	/*text-shadow:#444444 1px 1px 0;*/
+	transition: all 0.30s ease-in-out;
+    -webkit-transition: all 0.30s ease-in-out;
+    -moz-transition: all 0.30s ease-in-out;
+}
+.button_type_2{
+    color:white;
+    background-color:#3399ff;
+    font-family:Helvetica;
+	-moz-border-radius:3px;
+	border-radius:3px;
+	cursor:pointer;
+	border:none;
+	font-weight:700;
+}
+.button_type_2:hover{
+    background:#0066ff;
+    transition: all 0.30s ease-in-out;
+    -webkit-transition: all 0.30s ease-in-out;
+    -moz-transition: all 0.30s ease-in-out;
+}
+.button_type_3{
+    color:white;
+    background-color:#ff6699;
+    font-family:Helvetica;
+	-moz-border-radius:3px;
+	border-radius:3px;
+	cursor:pointer;
+	border:none;
+	font-weight:700;
+}
+.button_type_3:hover{
+    background:#ff3366;
+    transition: all 0.30s ease-in-out;
+    -webkit-transition: all 0.30s ease-in-out;
+    -moz-transition: all 0.30s ease-in-out;
+}
+.button_type_4{
+    color:white;
+    background-color:#FF99CC;
+    height:35px;
+    font-family:sans-serif;
+	font-size:16px;
+	-moz-border-radius:3px;
+	border-radius:3px;
+	cursor:pointer;
+	border:none;
+	font-weight:700;
+}
+.button_type_4:hover{
+    background:#FF99CC;
+    transition: all 0.30s ease-in-out;
+    -webkit-transition: all 0.30s ease-in-out;
+    -moz-transition: all 0.30s ease-in-out;
+}
+.button_type_5{
+    color:white;
+    background-color:#222222;
+    height:35px;
+    font-family:sans-serif;
+	font-size:16px;
+	-moz-border-radius:3px;
+	border-radius:3px;
+	cursor:pointer;
+	border:none;
+	font-weight:700;
+}
+.button_type_5:hover{
+    background:#444444;
+    transition: all 0.30s ease-in-out;
+    -webkit-transition: all 0.30s ease-in-out;
+    -moz-transition: all 0.30s ease-in-out;
+}
