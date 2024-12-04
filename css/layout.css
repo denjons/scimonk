@@ -4,24 +4,20 @@ body{
 #wrapper{
 	margin-left:auto;
 	background:#A0A0A0;
-	width:800px;
-	height:800px;
 }
 #workSpace{
 	background:#A0A0A0;
-	width:800px;
-	height:850px;
 	position:absolute;
+  width: fit-content;
 }
 
 #canvas{
-	position:absolute;
 	
 }
+
 #CanvasDiv{
-	position:absolut;
+	position:absolute;
 	margin:0px 0px 0px 0px;
-	width:450px;
 	vertical-align: middle;
 	background:#A0A0A0;
 }
@@ -50,11 +46,10 @@ body{
 }
 
 #help{
-	position:absolute;
+  float: right;
 	width:300px;
 	height:840px;
 	overflow:scroll;
-	margin:0px 0px 0px 800px;
 	background:white;
 	padding:5px;
 	

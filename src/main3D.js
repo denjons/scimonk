@@ -402,10 +402,11 @@ function convertImgDataToTexture(shape,data,width,height){
 
 function setAlpha(cords,colour){
 	
-	/*var origo = getOrigo(cords);
+	var origo = getOrigo(cords);
 	var normal = planeNormal(cords);
 	var nv = addV(origo,Vx(normal,0.5));
-	nodeVector(addV(origo,Vx(normal,-0.5)),nv,[100,50,50,250],false);*/
+	nodeVector(addV(origo,Vx(normal,-0.5)),nv,[100,50,50,250],false);
+  
 	
 	var plane = uPlane(cords);
 	var origo = getOrigo(plane);

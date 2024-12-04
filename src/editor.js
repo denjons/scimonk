@@ -886,33 +886,30 @@ function addStruct(){										        /* WHERE SHEOAS ARE ADDED UNDER CONSTRUCT
 	if(sciMonk.currentCords.length >= 1)
 		addNodes();
 	if(sciMonk.currentStruct.length >= 1){
-		var origo = getShapeOrigo(sciMonk.currentShape.shape);
-		sciMonk.currentModel.shapes[sciMonk.currentModel.nr] = {
-			"scale" : [
-				 sciMonk.currentShape.scale[0],
-				 sciMonk.currentShape.scale[1],
-				 sciMonk.currentShape.scale[2]
-			],
-			"pos" :[
-				 origo[0],
-				 origo[1],
-				 origo[2]
-			],
-			"rot" : [
-				 sciMonk.currentShape.rot[0],
-				 sciMonk.currentShape.rot[1],
-				 sciMonk.currentShape.rot[2]
-			],
-			"colour" : copyArray(sciMonk.currentShape.colour),
-			"shapeId" : sciMonk.currentModel.nr,
-			"shapeType" : sciMonk.currentShape.type, 
-			"shape" : copyArray(sciMonk.currentStruct)
-		}
-		sciMonk.currentModel.nr++;
+    addShapeToModel(sciMonk.currentStruct, 
+      sciMonk.currentShape.type, 
+      sciMonk.currentShape.colour, 
+      sciMonk.currentShape.scale, 
+      sciMonk.currentShape.rot);
+      
 		clearStruct();
 		sciMonk.update = true;
 	}
 	updateShapeList();
+}
+ 
+function addShapeToModel(shape, type, colour, scale, rotation) {
+    var origo = getShapeOrigo(shape);
+		sciMonk.currentModel.shapes[sciMonk.currentModel.nr] = {
+			"scale" : scale,
+			"pos" : origo,
+			"rot" : rotation,
+			"colour" : copyArray(colour),
+			"shapeId" : sciMonk.currentModel.nr,
+			"shapeType" : type, 
+			"shape" : copyArray(shape)
+		}
+		sciMonk.currentModel.nr++;
 }
 
 /*

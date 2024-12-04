@@ -17,7 +17,7 @@ function pipe(beg, end, w, r, s){
 		return [[beg],[end]];//cylinder(beg[0]+xL/2,beg[1]+yL/2,beg[2]+zL/2,w,len,w,r,s);
 	//	return [[beg],[end]];
 	}else{
-		var shape = cylinder(beg[0]+xL/2,beg[1]+yL/2,beg[2]+zL/2,w,len,w,r,s);
+		var shape = cylinder([beg[0]+xL/2,beg[1]+yL/2,beg[2]+zL/2],[w,len,w],s);
 		//return directShape(cylinder(beg[0]+xL/2,beg[1]+yL/2,beg[2]+zL/2,w,len,w,r,s),beg,end);
 	}
 		
@@ -109,19 +109,19 @@ function pipe3(u,v,w,r,s){
 		origo,
 			rotate(
 					origo,
-					cylinder(u[0]+ln[0]/2,u[1]+ln[1]/2,u[2]+ln[2]/2,w,len,w,r,s),
+					cylinder([u[0]+ln[0]/2,u[1]+ln[1]/2,u[2]+ln[2]/2],[w,len,w],s),
 					[Math.PI/4,0,Math.PI/2]),
 				[0,-2*Math.PI/3,0]
 			);	
 	}else if(len == Math.abs(ln[1])){
 		return rotate(
 				origo,
-				batchShuffle(cylinder(u[0]+ln[0]/2,u[1]+ln[1]/2,u[2]+ln[2]/2,w,len,w,r,s),s/2),
+				batchShuffle(cylinder([u[0]+ln[0]/2,u[1]+ln[1]/2,u[2]+ln[2]/2],[w,len,w],s),s/2),
 				[Math.PI/4,0,0]);
 	}else if(len == Math.abs(ln[2])){
 		return rotate(
 				origo,
-				cylinder(u[0]+ln[0]/2,u[1]+ln[1]/2,u[2]+ln[2]/2,w,len,w,r,s),
+				cylinder([u[0]+ln[0]/2,u[1]+ln[1]/2,u[2]+ln[2]/2],[w,len,w],s),
 				[Math.PI/4,Math.PI/2,0]);
 	}
 	
@@ -281,7 +281,7 @@ function spiral(beg, end, width, endWidth, w, endW, d, endD, curves, inter, r, l
 		a2 = 2*Math.PI/(2*inter)*(j+1);
 		lines = connectShapes(
 					lines,
-					pipe3([beg[0]+(ww*j)*Math.cos(a1),beg[1]+incr*(j),beg[2]+(dd*j)*Math.sin(a1)],
+					pipe([beg[0]+(ww*j)*Math.cos(a1),beg[1]+incr*(j),beg[2]+(dd*j)*Math.sin(a1)],
 					[beg[0]+(ww*(j+1))*Math.cos(a2),beg[1]+incr*(j+1),beg[2]+dd*(j+1)*Math.sin(a2)],
 					width,r,l)
 				);
@@ -296,7 +296,7 @@ function spiral(beg, end, width, endWidth, w, endW, d, endD, curves, inter, r, l
 				a2 = 2*Math.PI+(curves-2)*Math.PI/total*(i+1);
 				lines = connectShapes(
 							lines,
-							pipe3([beg[0]+(w+wDif*i)*Math.cos(a1),beg[1]+incr*(j+i),beg[2]+(d+dDif*i)*Math.sin(a1)],
+							pipe([beg[0]+(w+wDif*i)*Math.cos(a1),beg[1]+incr*(j+i),beg[2]+(d+dDif*i)*Math.sin(a1)],
 								[beg[0]+(w+wDif*(i+1))*Math.cos(a2),beg[1]+incr*(j+i+1),beg[2]+(d+dDif*(i+1))*Math.sin(a2)],
 								width+widthDif*i,r,l)
 						);
