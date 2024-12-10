@@ -358,15 +358,38 @@
       //var pipe3 = pipe3([0,0,0],[-100,100,0],20,10,10);
       //addShapeToModel(pipe3, "pipe3", [1,1,1,255], [1,1,1], [1,1,1]);
 
-      var screw1 = screw([0,0,0],[0,100,0], 200, 10, 10, 5, 5, 5, 5, 5, 10);
-      console.log(screw1);
-      addShapeToModel(screw1, "screw1", [1,1,1,255], [1,1,1], [1,1,1]);
+
+      /*
+     var screw1 = screw([0,0,0],[0,100,0], 200, 10, 10, 5, 5, 5, 5, 5, 10);
+     console.log(screw1);
+     addShapeToModel(screw1, "screw1", [1,1,1,255], [1,1,1], [1,1,1]);
+     /*
+
+     /*
+      var cube = box([0,0,0], [100,100,100]);
+      addShapeToModel(cube, "cube", [1,1,1,255], [1,1,1], [1,1,1]);
+      var laser = [[[-100,10,-500],[-100,10,500]]];
+      addShapeToModel(laser, "laser", [1,1,1,255], [1,1,1], [1,1,1]);
+      var beginning = cross(laser[0][0], 20);
+      addShapeToModel(beginning, "Beginning", [200,100,100,255], [1,1,1], [1,1,1]);
+      var intersection =  planeIntersection(laser[0][0], laser[0][1], cube[0]);
+      var cross = cross(intersection, 20);
+      addShapeToModel(cross, "cross", [200,100,100,255], [1,1,1], [1,1,1]);
+      var sphere = sphere([0,100,0], [100,100,100], 10, 10);
+      addShapeToModel(sphere, "sphere", [1,1,1,255], [1,1,1], [1,1,1]);
+      var cylinder = cylinder([0,-100,0], [100,100,100], 10, 10);
+      addShapeToModel(cylinder, "cylinder", [1,1,1,255], [1,1,1], [1,1,1]);
+      var cone = cone([100,0,0], [100,100,100], 10);
+      //console.log(cone);
+      addShapeToModel(cone, "cone", [1,1,1,255], [1,1,1], [1,1,1]);
+      */
+
+      //var cube2 = box(intersection, [10,10,10]);
+      //addShapeToModel(cube2, "cube2", [150,100,50,255], [1,1,1], [1,1,1]);
+      //console.log(intersection);
 
       //(beg, end, width, endWidth, w, endW, d, endD, curves, inter, r, l)
 
-      console.log(pipe3);
-
- 
       updateShapeList();
 
       sciMonk.shadow = true;

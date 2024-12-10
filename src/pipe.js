@@ -247,9 +247,7 @@ function directShape( shape, beg, end ){
 	
 */
 function screw(beg,end,width,w,d,curves,inter,r,l){
-	
 	return spiral(beg, end, width, 1, w, 1, d, 1, curves, inter, r, l);
-		
 }
 
 /*

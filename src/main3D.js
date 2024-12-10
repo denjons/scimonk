@@ -249,18 +249,22 @@ function line ( x1,x2,y1,y2,z1,z2,co,id){
 */
 
 function fill(cords,colour,id){
-	if(cords.length>4){
-		fillPolygon(cords,colour,id);
-	}else if(cords.length>2){
-		if(cords.length == 3){
-			cords[3] = cords[2];
-			cords = switchPlaces(cords,1,2);
-		}
-		// divide planes over large distances
-		if(sciMonk.dividePlane)
-			dividePlane(cords,colour,id);
-		else
-			fillPlane(cords,colour,id);
+  fillPlane(cords,colour,id);
+}
+
+function fillTriangle(con, colour, id) {
+  var a = [con[1][0]-con[0][0],con[1][1]-con[0][1]];
+	var aLen = vLen(a);
+	var az = con[1][2]-con[0][2];
+
+	var b = [con[0][0]-con[2][0],con[0][1]-con[2][1]];
+	var bLen = vLen(b);
+	var bz = con[0][2]-con[2][2];
+
+	if(aLen >= bLen){
+		drawRect(con[0],a,az,con[2],b,bz,colour,id);
+	}else{
+		drawRect(con[2],b,bz,con[0],a,az,colour,id);
 	}
 }
 
@@ -285,78 +289,54 @@ function dividePlane(v,colour,id){
 }
 
 function fillPlane(cords,colour,id){
-	colour = setAlpha(cords,colour);
-	cords = switchPlaces(cords,0,1);
-	if(sciMonk.shadow){
-		var shadow = multipleNopdes(castShadow(cords));
-		fillRect(shadow,sciMonk.shadowColour,sciMonk.undefinedShapeId);
-	}
-	
-	// draw nodes
-	var nodes = multipleNopdes(cords);
-	fillRect(nodes,colour,id);
-		//fillRect([nodes[0],nodes[2],nodes[1],nodes[3]],colour);
+    if(cords[0].length > 2){
+       
+      //cords = switchPlaces(cords,0,1);
+      if(sciMonk.shadow){
+        var shadow = multipleNopdes(castShadow(cords)); 
+        fillTriangle(shadow,sciMonk.shadowColour,sciMonk.undefinedShapeId);
+      }
+      
+      // draw nodes
+      for(var i = 0; i < cords.length; i ++){
+        colour = setAlpha(cords[i],colour);
+        var nodes = multipleNopdes(cords[i]); 
+        //fillRect(nodes,colour,id);
+        fillTriangle(nodes,colour,id);
+      }
+    } 
 }
 
-function fillRect(con,colour,id){
-	var a = [con[1][0]-con[0][0],con[1][1]-con[0][1]];
-	var aLen = vLen(a);
-	var az = con[1][2]-con[0][2];
-	var b = [con[3][0]-con[2][0],con[3][1]-con[2][1]];
-	var bLen = vLen(b);
-	var bz = con[3][2]-con[2][2];
-	if(aLen >= bLen){
-		drawRect(con[0],a,az,con[2],b,bz,colour,id);
-	}else{
-		drawRect(con[2],b,bz,con[0],a,az,colour,id);
-	}
+function fillTriangle(plane,colour,id){
+	var a = [plane[1][0]-plane[0][0],plane[1][1]-plane[0][1]];
+	var az = plane[1][2]-plane[0][2];
+
+	var b = [plane[0][0]-plane[2][0],plane[0][1]-plane[2][1]];
+	var bz = plane[0][2]-plane[2][2];
+
+	drawTriangle(plane[2],b,bz,plane[0],a,az,colour,id);
+
 }
 
-function drawRect(u,ux,uxZ,v,vx,vxZ,colour,id){
+function drawTriangle(u,ux,uxZ,v,vx,vxZ,colour,id){
 	var i = 0;
 	var uxLen = vLen(ux)*1.5;
 	for(i=0;i<uxLen;i++){
 		line(
 		u[0] + ux[0]/uxLen*i, 
-		v[0] + vx[0]/uxLen*i,
+		v[0] + vx[0],
 		u[1] + ux[1]/uxLen*i,
-		v[1] + vx[1]/uxLen*i,
+		v[1] + vx[1],
 		u[2] + uxZ/uxLen*i,
-		v[2] + vxZ/uxLen*i,
+		v[2] + vxZ,
 		colour,id);//-
 	}
 }
 
-/*
-	FILL POLYGON
-
-*/
-
-// old
-/*function fillPolygon(nds,colour,id){
-	var len = nds.length;
-	if(len<=4){
-		fill(switchPlaces(nds,0,1),colour,id);
-	}else if(len>4){
-		var i = len/2|0;
-		var a1 = reverse(drop(nds,i));
-		var a2 = take(nds,i);
-		sciMonk.mapSquare(a1,a2,colour,true,id);
-	}
-}*/
-
-
 //new
 function fillPolygon(nds,colour,id){
-	var len = nds.length;
-	if(len<=4){
 		fill(nds,colour,id);
-	}else if(len>4){
-		var i = len/2|0;
-		var a1 = reverse(drop(nds,i));
-		var a2 = take(nds,i);
-		sciMonk.mapSquare(a1,a2,colour,true,id);
-	}
+
 }
 
 /*
@@ -402,14 +382,15 @@ function convertImgDataToTexture(shape,data,width,height){
 
 function setAlpha(cords,colour){
 	
+  /*
 	var origo = getOrigo(cords);
 	var normal = planeNormal(cords);
 	var nv = addV(origo,Vx(normal,0.5));
 	nodeVector(addV(origo,Vx(normal,-0.5)),nv,[100,50,50,250],false);
-  
-	
+*/
+
 	var plane = uPlane(cords);
-	var origo = getOrigo(plane);
+  var origo = getOrigo(plane);
 	var normal = planeNormal(plane,origo);
 	
 	var lv = uToV(origo,Vx(sciMonk.lightVector,0.5));
@@ -425,11 +406,10 @@ function setAlpha(cords,colour){
 	else
 	 a = vectorAngle(Vx(nv,-1),lv);
 	
-	return [colour[0] + 25*Math.cos(a)*-1, 
-			colour[1] + 25*Math.cos(a)*-1,
-			colour[2] + 25*Math.cos(a)*-1,
-			sciMonk.alpha];
-			//2225+25*Math.cos(a)];//180+160*Math.cos(a);
+	return [colour[0] , 
+			colour[1] ,
+			colour[2],
+			200+55*Math.cos(a)];
 }
 
 /*

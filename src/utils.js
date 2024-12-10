@@ -12,26 +12,31 @@
 	
 */
 function sphere(pos,size,sn,sr){
-	var lines = new Array();
-	lines[0] = [[pos[0],pos[1]+size[1]/2,pos[2]]]; 
-	var end = 0;
-	var i = 0;
-	for(i=1;i<sn;i++){ // computes each line
-		var n = 0;
-		var nodes = new Array();
-		var j = 0;
-		for(j=0;j<sr;j++){ // computes each node on one line
-			//node coordinate
-			end = (2*Math.PI)/sr*(j-1);
-			nodes[n] = [pos[0]+((size[0]/2)*Math.sin(Math.PI/sn*i))	            *Math.cos(end), 
-						pos[1]+(size[1]/2)*Math.sin(Math.PI/2-Math.PI/sn*i),
-						pos[2]+((size[2]/2)*Math.sin(Math.PI/sn*i))				*Math.sin(end)];
-			n++;
+	var sphere = new Array();
+	var top = [pos[0],pos[1]+size[1]/2,pos[2]];
+  var bottom =  [pos[0],pos[1]-size[1]/2,pos[2]];
+	for(var i=1;i<sn;i++){ // computes each line
+		for(var j=0;j<sr;j++){ // computes each node on one line
+			if(i==1){
+        sphere.push([top, sphereCoordinate(pos, size, i, j, sn, sr), sphereCoordinate(pos, size, i, (j+1)%sr, sn, sr)])
+        squareToTriangles([sphereCoordinate(pos, size, i, j, sn, sr), sphereCoordinate(pos, size, i, (j+1)%sr, sn, sr),
+                          sphereCoordinate(pos, size, i+1, (j+1)%sr, sn, sr), sphereCoordinate(pos, size, i+1, j, sn, sr)], sphere);
+      }else if(i==sn-1){
+        sphere.push([bottom, sphereCoordinate(pos, size, i, j, sn, sr), sphereCoordinate(pos, size, i, (j+1)%sr, sn, sr)])
+      }else{
+        squareToTriangles([sphereCoordinate(pos, size, i, j, sn, sr), sphereCoordinate(pos, size, i, (j+1)%sr, sn, sr),
+                          sphereCoordinate(pos, size, i+1, (j+1)%sr, sn, sr), sphereCoordinate(pos, size, i+1, j, sn, sr)], sphere);
+      }
 		}
-		lines[i] = nodes;
 	}
-	lines[lines.length] =  [[pos[0],pos[1]-size[1]/2,pos[2]]];
-	return lines;
+	return sphere;
+}
+
+function sphereCoordinate(pos, size, i, j, sn, sr) {
+  var end = (2*Math.PI)/sr*(j-1);
+  return [pos[0]+((size[0]/2)*Math.sin(Math.PI/sn*i))*Math.cos(end), 
+						pos[1]+(size[1]/2)*Math.sin(Math.PI/2-Math.PI/sn*i),
+						pos[2]+((size[2]/2)*Math.sin(Math.PI/sn*i))*Math.sin(end)];
 }
 
 /*
@@ -45,9 +50,41 @@ function box2(x, y, z, w, h, d){
 	w=w/2;
 	h=h/2;
 	d=d/2;
-	return [[[x-w,y-h,z+d],[x+w,y-h,z+d],[x+w,y-h,z-d],[x-w,y-h,z-d]],
-			[[x-w,y+h,z+d],[x+w,y+h,z+d],[x+w,y+h,z-d],[x-w,y+h,z-d]]];
+  var array = new Array();
+  // front
+  squareToTriangles([[x-w,y-h,z+d],[x-w,y+h,z+d],[x+w,y+h,z+d],[x+w,y-h,z+d]], array);
+  // back
+  squareToTriangles([[x-w,y-h,z-d],[x-w,y+h,z-d],[x+w,y+h,z-d],[x+w,y-h,z-d]], array);
+  // top
+  squareToTriangles([[x-w,y+h,z+d],[x-w,y+h,z-d],[x+w,y+h,z-d],[x+w,y+h,z+d]], array);
+  // bottom
+  squareToTriangles([[x-w,y-h,z+d],[x-w,y-h,z-d],[x+w,y-h,z-d],[x+w,y-h,z+d]], array);
+  // left
+  squareToTriangles([[x-w,y+h,z+d],[x-w,y+h,z-d],[x-w,y-h,z-d],[x-w,y-h,z+d]], array);
+    // right
+  squareToTriangles([[x+w,y+h,z+d],[x+w,y+h,z-d],[x+w,y-h,z-d],[x+w,y-h,z+d]], array);
+  return array;
+	//return [[[x-w,y-h,z+d],[x+w,y-h,z+d],[x+w,y-h,z-d],[x-w,y-h,z-d]],
+	//		[[x-w,y+h,z+d],[x+w,y+h,z+d],[x+w,y+h,z-d],[x-w,y+h,z-d]]];
 
+}
+
+function squareToTriangles(square, triangles) {
+  triangles.push([square[0], square[1], square[2]]);
+  triangles.push([square[2], square[3], square[0]]);
+} 
+
+/**
+ * cross
+ * @param {*} p 
+ * @param {*} width 
+ * @returns 
+ */
+function cross(p, width) {
+  var w = width/2;
+  return [[[p[0]-w, p[1], p[2]], [p[0]+w, p[1], p[2]]],
+  [[p[0], p[1]-w, p[2]], [p[0], p[1]+w, p[2]]],
+[[p[0], p[1], p[2]-w], [p[0], p[1], p[2]+w]]];
 }
 
 /*
@@ -55,10 +92,13 @@ function box2(x, y, z, w, h, d){
 	
 */
 function cylinder(pos,size,lns){
-	var lines = new Array(); 
-	lines[0] = xRzCircle([pos[0],pos[1]-size[1]/2,pos[2]],size[0]/2, size[2]/2, lns)[0];
-	lines[1] = xRzCircle([pos[0],pos[1]+size[1]/2,pos[2]],size[0]/2, size[2]/2, lns)[0];
-	return lines;
+	var cylinder = new Array(); 
+	var top = xRzCircle([pos[0],pos[1]-size[1]/2,pos[2]],size[0]/2, size[2]/2, lns)[0];
+	var bottom = xRzCircle([pos[0],pos[1]+size[1]/2,pos[2]],size[0]/2, size[2]/2, lns)[0];
+  for(var i = 0; i < top.length; i++){
+    squareToTriangles([top[i], top[(i+1)%top.length], bottom[(i+1)%top.length], bottom[i]],cylinder)
+  }
+	return cylinder;
 	
 }
 
@@ -67,11 +107,14 @@ function cylinder(pos,size,lns){
 
 */
 function cone(pos,sc,s){
+  var cone = new Array();
 	pos[1] = pos[1] - sc[1]/2;
-	var c = xRzCircle(pos, sc[0]/2, sc[2]/2, s);
+	var bottom = xRzCircle(pos, sc[0]/2, sc[2]/2, s)[0];
 	pos[1] = pos[1]+sc[1];
-	c[1] = [pos];
-	return c;
+	for(var i = 0; i < bottom.length; i++) {
+    cone.push([pos, bottom[i], bottom[(i+1)%bottom.length]]);
+  }
+	return cone;
 }
 
 
@@ -315,11 +358,10 @@ function translateNodes(nodes,v){
 
 */
 sciMonk.lineMap=function(ln, colour, alpha){
-	
 	sciMonk.ringMap(ln, colour, alpha);
-	for(nm=1;nm<ln.length;nm++){
-		sciMonk.mapLine(ln[nm-1], ln[nm], colour, alpha);
-	}
+	//for(nm=1;nm<ln.length;nm++){
+		//sciMonk.mapLine(ln[nm-1], ln[nm], colour, alpha);
+	//}
 }
 
  // UTILITY METHODS
@@ -377,24 +419,9 @@ sciMonk.batchLineMap=function(lines, colours, multiColour, alpha){
 
 */
 sciMonk.colourMap=function(ln,colour,id){
-	var i =1;
-	var len = ln.length;
-	if(ln[0].length > 2){
-		fillPolygon(ln[0],colour,id);
-	}
-	if(ln[len-1].length > 2){
-		fillPolygon(ln[len-1],colour,id);
-	}
-		
-	for(i=1;i<len;i++){
-		if(ln[i-1].length == 1 && ln[i].length == 1){
-			sciMonk.lineMap([ln[i-1],ln[i]], colour, true);
-		}else{
-			sciMonk.mapSquare(ln[i-1],ln[i],colour,false,id);
-		}
-	}
-	
+		fillPolygon(ln,colour,id);
 }
+
 //	UTILITY METHODS
 sciMonk.mapSquare = function(line1,line2,colour,open,id){
 	var a = Math.max(line1.length,line2.length);
@@ -446,6 +473,7 @@ sciMonk.batchColourMap = function(shapes,colours,multiColour,id){
 	COLOUR MAP SHAPE
 */
 sciMonk.colourMapShape = function(obj){
+
 	sciMonk.colourMap(obj.shape,obj.colour,obj.shapeId);
 }
 /*

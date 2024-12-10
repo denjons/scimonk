@@ -301,7 +301,7 @@ function Vt(v,t){
 /*
 	|v|
 	VECTOR LENGTH
-
+  Pythagorean theorem
 */
 function vLen(v){
 	var i =0;
@@ -372,9 +372,13 @@ function lineNormal(u,v){
 	plane normal
 
 */
-function planeNormal(cords,origo){
-	var origo = getOrigo(cords);
-	return lineNormal(uToV(origo,cords[0]),uToV(origo,cords[1]));
+function planeNormal(plane){
+	var origo = getOrigo(plane);
+  return planeNormalFromPoint(plane, origo);
+}
+
+function planeNormalFromPoint(plane, point){
+	return lineNormal(uToV(point,plane[0]),uToV(point,plane[1]));
 }
 
 
@@ -550,4 +554,54 @@ function roundTo(nr, dec){
 	else{
 		return Math.floor(nr*Math.pow(10,dec))/Math.pow(10,dec);
 	}
+}
+
+/*
+  PLANES
+*/
+
+/**
+ * 
+ * Returns the intersection point of v1 -> v2 on plane.
+ * 
+ * point v1 [a1,a2,a3]
+ * point v2 [b1,b2,b3]
+ *
+ * plane [a,b,c]
+ * 
+ * https://math.stackexchange.com/questions/100439/determine-where-a-vector-will-intersect-a-plane
+ * 
+ * (𝑥,𝑦,𝑧)=(𝑜1+𝑑1𝑡,𝑜2+𝑑2𝑡,𝑜3+𝑑3𝑡)
+ * 
+ * 𝑁1(𝑥−𝑎1)+𝑁2(𝑦−𝑎2)+𝑁3(𝑧−𝑎3)=0
+ * 
+ * 𝑥=𝑜1+𝑑1𝑡,𝑦=𝑜2+𝑑2𝑡𝑧=𝑜3+𝑑3𝑡
+ */
+
+function planeIntersection(v1, v2, plane) {
+  var d = unitVector(v1, v2);
+  var o = v1;
+  var a = getOrigo(plane);
+  var N = planeNormalFromPoint(plane, a);
+  //0 == N[0]*((o[0]+d[0]*t)-a[0]) + N[1]*((o[1]+d[1]*t)-a[1]) + N[2]*((o[2]+d[2]*t)-a[2]);
+  var d1 = (N[2]*a[2]+ N[0]*a[0] + N[1]*a[1]) - (N[0]*o[0] + N[1]*o[1] + N[2]*o[2])
+  var d2 = (N[0]*d[0] + N[1]*d[1] + N[2]*d[2]);
+  var t = d1/d2;
+
+  return [o[0]+t*d[0], o[1]+t*d[1], o[2]+t*d[2]];
+}
+
+/**
+ * Unit vector (direction) of distance between point v1 and v2
+ * 
+ * @param {*} p1 point 1
+ * @param {*} p2 point 2
+ */
+function unitVector(p1, p2) {
+  var v = uToV(p1, p2);
+  var length = vDist(p1, p2);
+  v[0] = v[0]/length;
+  v[1] = v[1]/length;
+  v[2] = v[2]/length;
+  return v;
 }
