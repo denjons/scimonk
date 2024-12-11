@@ -276,59 +276,13 @@ function saveOptions(view){
 }
 
 function saveModel(view){
-	// produce JSON object
-	var json = JSONparseModelObject(sciMonk.currentModel);
-	// get image url
-	var img =  Canvas.toDataURL("image/png").replace(/^data:image\/(png|jpg);base64,/, "");
-	//+"&image="+img
-	if(sciMonk.currentModel.modelId > 0){
-		sciMonk.REST.PostRequest(sciMonk.REST.PATH+"update.php","json="+json,
-		function(){
-			sciMonk.console.write(sciMonk.REST.responseText);
-			alert("Model was successfully saved.");
-		});
-	}else{
-		sciMonk.REST.PostRequest(sciMonk.REST.PATH+"save.php","json="+json,
-		function(){
-			sciMonk.currentModel.modelId = sciMonk.REST.responseText;
-			sciMonk.console.write(sciMonk.REST.responseText);
-			alert("Model was successfully saved.");
-		});
-	}
-	sciMonk.viewStack.pop();
-	//deflateView(view);
+  console.log("Not implemented");
 }
 
 function loadModel(id,view){
 	loadModelRequest(id);
 	sciMonk.viewStack.pop();
 	//deflateView(view);
-}
-
-function loadModelRequest(id){
-	sciMonk.REST.request("GET",sciMonk.REST.PATH+"load.php?id="+id,
-	function(){
-		clearStruct();
-		serverMessage(sciMonk.REST.responseText);
-		sciMonk.currentModel = eval("(" + sciMonk.REST.responseText + ")");
-		sciMonk.currentModel.nr = sciMonk.currentModel.shapes.length;
-		serverMessage("Loaded model with "+sciMonk.currentModel.shapes.length+" shapes."); 
-		sciMonk.update = true;
-		updateShapeList();
-	});
-}
-
-function loadItemList(){
-	var id = 1;
-	var lastId = 1;
-	var limit = 6;
-	sciMonk.REST.request("GET",sciMonk.REST.PATH+"list.php?id="+id+"&lastId="+lastId+"&limit="+limit,function(){
-		clearStruct();
-		sciMonk.console.write(sciMonk.REST.responseText);
-		sciMonk.currentItemList = eval ("(" + sciMonk.REST.responseText + ")");
-		serverMessage("Loaded model list with "+sciMonk.currentItemList.length+" items.");
-		inflateLoadModelsView();
-	});
 }
 
 function deleteModelCheck(id,view){
@@ -338,10 +292,7 @@ function deleteModelCheck(id,view){
 }
 
 function deleteModel(id){
-	sciMonk.REST.request("GET",sciMonk.REST.PATH+"delete.php?id="+id,
-	function(){
-	
-	});
+	console.log("Not implemented");
 }
 
 function pickShapesFromMap(){
@@ -569,29 +520,7 @@ function setModelCreator(val){
 */
 
 function displaySource(){
-	if(sciMonk.currentModel.modelId<=0){
-		inflateSaveOptionsView();
-		return;
-	}
-	var div = document.createElement("div");
-	div.id = "sourceView";
-	var sourceCon = document.createElement("div");
-	sourceCon.setAttribute("class","sourceContainer");
-	//sourceCon.innerHTML= codeString(getSciMonkSource());
-	var sourceTxt = document.createElement("textarea");
-	sourceTxt.innerHTML= getSciMonkSource();
-	sourceTxt.setAttribute("class","sourceTex");
-	//sourceCon.innerHTML= getSciMonkSource();
-	sourceCon.appendChild(sourceTxt);
-	makeClosable(div);
-	var dnlDvi = document.createElement("div");
-	dnlDvi.setAttribute("class","downloadHeader");
-	dnlDvi.innerHTML = "<h4>Copy & Paste.</h4>"+
-	"<p>Copy and paste the source into a HTML document. It should work as long as you have an internet connection!</p>"+
-	"<p>You can also find the entire script in this <a href='distributable/sciMonk.zip'>zip</a> file.</p>";
-	div.appendChild(dnlDvi);
-	div.appendChild(sourceCon);
-	inflateView(div);
+  console.log("Not implemented");
 }
 
 

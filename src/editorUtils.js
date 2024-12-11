@@ -1,16 +1,7 @@
 
-
 /*
 	SOURCE
 */
-
-
-function getSciMonkSource(){
-	return "&lt;!DOCTYPE HTML&gt;\n"+
-		tag("html",0,tag("head",0,scriptImports())+"\n"+
-		tag("body",0,tag("div","id='wraper'",tag("canvas","id='canvas' width='500' height='500'","")+"\n"+
-		tag("script","type='text/javascript'",getScript()))))+"";
-}
 
 function tag(name,props,content){
 	var res = "&lt;"+name;
@@ -23,28 +14,6 @@ function tag(name,props,content){
 
 function scriptImports(){
 	return tag("script","type='text/javascript' src='"+sciMonk.javascriptSrc+"'","");
-}
-
-function getScript(){
-		return "var model = new Object();\n"+
-		"sciMonk.init(document.getElementById('canvas'));\n"+
-		"sciMonk.moveMax=500;\n"+
-		"sciMonk.draw=function(){\n"+
-		//"&nbsp&nbsp&nbsp&nbsp sciMonk.xRzRot = ((Math.PI/100)*sciMonk.it)%(Math.PI*2);<br>"+
-		"sciMonk.colourMapModel(model);\n"+
-		//"&nbsp&nbsp&nbsp&nbsp sciMonk.update=true;<br>"+
-		"}\n"+
-		"sciMonk.yMove = "+sciMonk.yMove+";\n"+
-		"sciMonk.xMove = "+sciMonk.xMove+";\n"+
-		"sciMonk.zMove = "+sciMonk.zMove+";\n"+
-		"sciMonk.xRzRot = "+sciMonk.xRzRot+";\n"+
-		"sciMonk.yRzRot = "+sciMonk.yRzRot+";\n"+
-		"sciMonk.xRyRot = "+sciMonk.xRyRot+";\n"+
-		"sciMonk.REST.CorsRequest('GET',sciMonk.REST.loadURL+"+sciMonk.currentModel.modelId+",\n"+
-		"function(){\n"+
-		"model = eval ('(' + sciMonk.REST.responseText + ')');\n"+
-		"sciMonk.update=true;\n"+
-		"});\n";
 }
 
 /*
@@ -82,78 +51,6 @@ function getScript(){
 		return txt;
 	}
 
-
-
-/*
-	JSON MODEL PARSING
-
-*/
-
-
-function JSONparseModelObject(model){
-	var JSONmodel = '{ '+
-		'"name":"'+model.name+'",'+
-		'"user":"'+model.user+'",'+
-		'"modelId":'+model.modelId+','+
-		'"userId":1,'+
-		JSONparseShapeObject(model.shapes)+
-		'}';
-		return JSONmodel;
-}
-
-function JSONparseShapeObject(shapes){
-	var JSONshape = '"shapes":'+
-			'[';
-	var i = 0;
-	for(i=0;i<shapes.length;i++){
-		JSONshape += '{';
-		JSONshape += '"scale":'+ JSONparseVector(shapes[i].scale)+','+
-					 '"pos":'+  JSONparseVector(shapes[i].pos)+','+
-					 '"rot":'+ JSONparseVector(shapes[i].rot)+','+
-					 '"colour":'+ JSONparseVector(shapes[i].colour)+','+
-					 '"shapeType":"'+shapes[i].shapeType+'",';
-		JSONshape += JSONparseShape(shapes[i].shape);
-		JSONshape += '}';
-		
-		if(i<shapes.length-1)
-			JSONshape += ',';
-	}
-			
-	JSONshape += ']';
-	return JSONshape;
-}
-
-function JSONparseShape(shape){
-	var str = '"shape":[';
-	var i = 0;
-	for(i=0;i<shape.length;i++){
-		str += '[';
-		var j = 0;
-		for(j=0;j<shape[i].length;j++){
-			str += JSONparseVector(shape[i][j]);
-			if(j<shape[i].length-1)
-			str += ',';
-		}
-		str += ']';
-		if(i<shape.length-1)
-			str += ',';
-	}
-	str += ']';
-	return str;
-}
-
-function JSONparseVector(v){
-	var JSONvector = '['
-	var j = 0;
-	for(j=0;j<v.length;j++){
-		JSONvector += v[j];
-		if(j<v.length-1)
-			JSONvector += ',';
-	}
-	JSONvector += ']';
-	return JSONvector;
-}
-
 /*
 	DRAW EDITOR, MODEL
 */
@@ -175,7 +72,6 @@ function drawEditor(){
 		}
 	}
 	else{
-		
 		updateShapePos();
 		if(sciMonk.lineModel){
 			sciMonk.lineMapObject(sciMonk.currentShape,false);

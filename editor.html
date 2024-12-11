@@ -32,9 +32,7 @@
     <script type="text/javascript" src="./src/graph.js"></script>
     <script type="text/javascript" src="./src/utils.js"></script>
      <script type="text/javascript" src="./src/pipe.js"></script>
-    <!--<script type="text/javascript" src="./src/insides.js"></script>-->
-
-    <!--<script type="text/javascript" src="lib/js/pipe.js"></script>-->
+    <script type="text/javascript" src="./src/insides.js"></script>
 
     <!--editor-->
     <script type="text/javascript" src="./src/gui.js"></script>
@@ -343,14 +341,14 @@
         sciMonk.xRyRot = 0;
       };
 
-      //var inside1 = insides.insidesCollection[0]();
-      //for(var i = 0; i < inside1.shapes.length; i ++){
-        //console.log(inside1.shapes[i]);
-        //sciMonk.colourMap(inside1.shapes[i], );
-        //sciMonk.lineMap(inside1.shapes[i],[1,1,1,255],200);
-        //addShapeToModel(inside1.shapes[i], "insides", [1,1,1,255], [1,1,1], [1,1,1]);
-        
-      //}
+
+      /*
+      var inside1 = insides.insidesCollection[0]();
+      for(var i = 0; i < inside1.shapes.length; i ++){
+        addShapeToModel(inside1.shapes[i], "insides "+i, [1,1,1,255], [1,1,1], [1,1,1]);
+      }
+      */
+     
 
       //var pipe1 = pipe([0,0,0],[100,-100,0],10,10,10);
       //addShapeToModel(pipe1, "pipe", [1,1,1,255], [1,1,1], [1,1,1]);
@@ -359,11 +357,11 @@
       //addShapeToModel(pipe3, "pipe3", [1,1,1,255], [1,1,1], [1,1,1]);
 
 
+    
       /*
      var screw1 = screw([0,0,0],[0,100,0], 200, 10, 10, 5, 5, 5, 5, 5, 10);
-     console.log(screw1);
      addShapeToModel(screw1, "screw1", [1,1,1,255], [1,1,1], [1,1,1]);
-     /*
+     */
 
      /*
       var cube = box([0,0,0], [100,100,100]);
@@ -417,7 +415,6 @@
       };
       //sciMonk.zMove = 0;
       sciMonk.update = true;
-      //sciMonk.PHP.ping();
 
       sciMonk.reset();
     </script>

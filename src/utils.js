@@ -412,47 +412,15 @@ sciMonk.batchLineMap=function(lines, colours, multiColour, alpha){
 	}
 }
 
-
-
 /*
 	COLOUR MAP
 
 */
 sciMonk.colourMap=function(ln,colour,id){
-		fillPolygon(ln,colour,id);
+		fillTrianglePlane(ln,colour,id);
 }
 
 //	UTILITY METHODS
-sciMonk.mapSquare = function(line1,line2,colour,open,id){
-	var a = Math.max(line1.length,line2.length);
-	var b = Math.min(line1.length,line2.length);
-	var c = b/a;
-	var i = 0;
-	var j = 0;
-	var j2=0;
-	for(i=0;i<a-1;i++){
-		j2 = Math.round(c*(i+1));
-		if(j2>=b){
-			j2=j2-b;
-		}
-		if(line1.length == a)
-			fill([line1[i],line1[i+1],line2[j2],line2[j]],colour,id);
-		else
-			fill([line2[i],line2[i+1],line1[j2],line1[j]],colour,id);
-		
-		j = Math.round(c*(i+1));
-		if(j>=b)
-			j=j-b;
-	}
-	if(!open){
-		// Shut circle without manipulating circle
-		if(line1.length == a)
-			
-			fill([line1[line1.length-1],line1[0],line2[0],line2[line2.length-1]],colour,id);
-		else
-			fill([line2[line2.length-1],line2[0],line1[0],line1[line1.length-1]],colour,id);
-	}
-}
 
 /*
 	BATCH COLOUR MAP
@@ -473,7 +441,6 @@ sciMonk.batchColourMap = function(shapes,colours,multiColour,id){
 	COLOUR MAP SHAPE
 */
 sciMonk.colourMapShape = function(obj){
-
 	sciMonk.colourMap(obj.shape,obj.colour,obj.shapeId);
 }
 /*

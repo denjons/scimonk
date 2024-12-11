@@ -85,61 +85,6 @@ function(col){
 );
 
 /*
-	SCREW
-	
-*/
-function screw(beg,end,width,w,d,curves,inter,r,l){
-	
-	return spiral(beg, end, width, 1, w, 1, d, 1, curves, inter, r, l);
-		
-}
-
-/*
-	SPIRAL
-	
-*/
-function spiral(beg, end, width, endWidth, w, endW, d, endD, curves, inter, r, l){
-	var total = curves * inter;
-	var widthDif = (endWidth-width)/total;
-	var wDif = (endW-w)/total;
-	var dDif = (endD-d)/total;
-	var xL = end[0]-beg[0];
-	var yL = end[1]-beg[1];
-	var zL = end[2]-beg[2];
-	var len = Math.sqrt(xL*xL+yL*yL+zL*zL);
-	var incr = len/total;
-	var a1=0;
-	var a2=0;
-	var lines = new Array();
-	var j=0;
-	var dd = d/(2*inter);
-	var ww = w/(2*inter);
-	for(j=0;j<2*inter;j++){
-		a1 = 2*Math.PI/(2*inter)*j;
-		a2 = 2*Math.PI/(2*inter)*(j+1);
-		lines = connectShapes(
-					lines,
-				    [[[beg[0]+(ww*j)*Math.cos(a1),beg[1]+incr*(j),beg[2]+(dd*j)*Math.sin(a1)],
-					[beg[0]+(ww*(j+1))*Math.cos(a2),beg[1]+incr*(j+1),beg[2]+dd*(j+1)*Math.sin(a2)]]]
-				);
-	}
-	if(curves>1){
-		var i=0;
-		for(i=0;i<total;i++){
-				a1 = 2*Math.PI+(curves-2)*Math.PI/total*i;
-				a2 = 2*Math.PI+(curves-2)*Math.PI/total*(i+1);
-				lines = connectShapes(
-							lines,
-							[[[beg[0]+(w+wDif*i)*Math.cos(a1),beg[1]+incr*(j+i),beg[2]+(d+dDif*i)*Math.sin(a1)],
-								[beg[0]+(w+wDif*(i+1))*Math.cos(a2),beg[1]+incr*(j+i+1),beg[2]+(d+dDif*(i+1))*Math.sin(a2)]]]
-							
-						);
-		}
-	}
-	return directShape(lines,beg,end);
-}
-
-/*
 	CONNECT SHAPES
 
 */

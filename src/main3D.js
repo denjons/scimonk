@@ -248,47 +248,7 @@ function line ( x1,x2,y1,y2,z1,z2,co,id){
 
 */
 
-function fill(cords,colour,id){
-  fillPlane(cords,colour,id);
-}
-
-function fillTriangle(con, colour, id) {
-  var a = [con[1][0]-con[0][0],con[1][1]-con[0][1]];
-	var aLen = vLen(a);
-	var az = con[1][2]-con[0][2];
-
-	var b = [con[0][0]-con[2][0],con[0][1]-con[2][1]];
-	var bLen = vLen(b);
-	var bz = con[0][2]-con[2][2];
-
-	if(aLen >= bLen){
-		drawRect(con[0],a,az,con[2],b,bz,colour,id);
-	}else{
-		drawRect(con[2],b,bz,con[0],a,az,colour,id);
-	}
-}
-
-function dividePlane(v,colour,id){
-	if((vLen(uToV(v[0],v[1]))*vLen(uToV(v[0],v[3])))>sciMonk.maxSurfaceArea || (vLen(uToV(v[2],v[1]))*vLen(uToV(v[2],v[3])))>sciMonk.maxSurfaceArea){
-		var o = getOrigo(v);
-		var i=0;
-		// clockwise circle from upper left
-		var allNodes = [
-			[v[0],addV(v[0],Vx(uToV(v[0],v[1]),0.5)),o,addV(v[3],Vx(uToV(v[3],v[0]),0.5))],
-			[addV(v[0],Vx(uToV(v[0],v[1]),0.5)),v[1],addV(v[1],Vx(uToV(v[1],v[2]),0.5)),o],
-			[o,addV(v[1],Vx(uToV(v[1],v[2]),0.5)),v[2],addV(v[2],Vx(uToV(v[2],v[3]),0.5))],
-			[addV(v[3],Vx(uToV(v[3],v[0]),0.5)),o,addV(v[2],Vx(uToV(v[2],v[3]),0.5)),v[3]]
-		];
-		//sciMonk.outputz.innerHTML +=i+" : "+allNodes;
-		for(i=0;i<4;i++){
-			dividePlane(allNodes[i],colour,id);
-		}
-	}else{
-		fillPlane(v,colour,id);
-	}
-}
-
-function fillPlane(cords,colour,id){
+function fillTrianglePlane(cords,colour,id){
     if(cords[0].length > 2){
        
       //cords = switchPlaces(cords,0,1);
@@ -315,7 +275,6 @@ function fillTriangle(plane,colour,id){
 	var bz = plane[0][2]-plane[2][2];
 
 	drawTriangle(plane[2],b,bz,plane[0],a,az,colour,id);
-
 }
 
 function drawTriangle(u,ux,uxZ,v,vx,vxZ,colour,id){
@@ -354,26 +313,6 @@ function applyTextureFromSource(shape,source){
 		applyTextureFromImageData(shape,imgData.data,can.width,can.height);
 	}
 }
-/*
-function applyTextureFromImageData(shape,data,width,height){
-	
-}
-
-function convertImgDataToTexture(shape,data,width,height){
-	var res = shape.res;
-	var len = data.length/4;
-	var i =0;
-	var texture = new Array();
-	var row = new Array();
-	for(i=0;i<len;i ++){
-		var j = 0;
-		row[i] = new Array();
-		for(j=0;j<4;j++){
-			row[i][j] = data[i*4+j];
-		}
-	}
-	
-}*/
 
 /*
 	SET ALPHA CHANNEL
@@ -417,7 +356,6 @@ function setAlpha(cords,colour){
 
 */
 function castShadow(nodes){
-	
 	return translateNodes(nodesXm(nodes,[[1,0,0],[0,0,0],[0,0,1]]),sciMonk.shadowVector);
 }
 
