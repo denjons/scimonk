@@ -1221,3 +1221,53 @@ sciMonk.console.clear = function(){
 		sciMonk.console.prompt.removeChild(sciMonk.console.prompt.firstChild);
 	}
 }
+
+/**
+ STL files
+ * 
+ */
+
+
+function dropEventHandler(event){
+  console.log("dropped file" + event);
+  event.preventDefault();
+  if (event.dataTransfer.items) {
+    // Use DataTransferItemList interface to access the file(s)
+    [...event.dataTransfer.items].forEach((item, i) => {
+      // If dropped items aren't files, reject them
+      if (item.kind === "file") {
+        var reader = new FileReader();
+        const file = item.getAsFile();
+        reader.readAsArrayBuffer(file);
+        reader.onload = function() {
+          //console.log(reader.result);
+          parseSTL(reader.result);
+        };
+        reader.onerror = function() {
+          console.log(reader.error);
+        };
+      }
+    });
+  }
+}
+
+function dragEnterEventHandler(event){
+  event.preventDefault();
+}
+
+function dragOverEventHandler(event){
+  event.preventDefault();
+}
+
+function parseSTL(arrayBuffer){
+  // Header (80 bytes) and number of triangles (4 bytes) 0 - 83
+  // Each triangle is 50 bytes unit vector (12 bytes), 3 points (12 bytes), and attribute count (2 bytes)
+  var result = new Array();
+  console.log(arrayBuffer.byteLength);
+  for(var i = 84; i < arrayBuffer.byteLength; i += 50) {
+    var points = new Float32Array(arrayBuffer.slice(i, i+48));
+    result.push([[points[3],points[4],points[5]], [points[6],points[7],points[8]], [points[9],points[10],points[11]]]);
+  }
+  addShapeToModel(result, "imported_stl", [1,1,1,255], [1,1,1], [1,1,1]);
+  updateShapeList();
+}

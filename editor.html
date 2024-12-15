@@ -41,8 +41,8 @@
   </head>
 
   <body onkeydown="keyDownEvt(event);" onkeyup="keyUpEvt()" id="body">
-    <div id="wraper">
-      <div id="workSpace">
+    <div id="wraper" >
+      <div id="workSpace" ondrop="dropEventHandler(event)" ondragover="dragOverEventHandler(event)" ondragenter="dragEnterEventHandler(event)"   >
         <div id="canvasDiv">
           <canvas
             id="canvas"
@@ -145,7 +145,7 @@
           document in your browser.
         </p>
       </div>
-            <div id="shapes">
+      <div id="shapes">
         <div id="shapesControl"></div>
         <div class="divHeader">
           <h3>Shapes</h3>
