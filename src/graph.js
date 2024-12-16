@@ -181,7 +181,7 @@ function node(cords,xRzR,yRzR,xRyR){
 function multipleNopdes(nodes){
 	var i =0;
 	var newNodes = new Array();
-	for(i=0;i<nodes.length;i++){
+	for(i=0;i<Math.max(3, nodes.length);i++){
 		newNodes[i] = node(nodes[i], sciMonk.xRzRot,sciMonk.yRzRot,sciMonk.xRyRot);
 	}
 	return newNodes;
@@ -201,7 +201,7 @@ function uNode(cord){
 function uPlane(plane){
 	var i = 0;
 	var uPlane = new Array();
-	for(i=0;i<plane.length;i++){
+	for(i=0;i<Math.max(3, plane.length);i++){
 		uPlane[i] = uNode(plane[i]);
 	}
 	return uPlane;
@@ -346,7 +346,7 @@ function scale(v,origo,vn){
 function batchScale(vs,origo,vn){
 	var i = 0; 
 	var nv = new Array();
-	for(i=0;i<vs.length;i++){
+	for(i=0;i<Math.max(3, vs.length);i++){
 		nv[i] = scale(vs[i],origo,vn);
 	}
 	return nv;
@@ -361,7 +361,6 @@ function batchScale(vs,origo,vn){
 
 function lineNormal(u,v){
 	var uv = uToV(u,v);
-	var uvLen = vLen(uv);
 	var n = [u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]];
 	var b = vLen(uv);
 	return Vx(n,1/b);
@@ -463,7 +462,7 @@ function multMatrix(A,H){
 
 function Ax(A,x){
 	var i = 0;
-	for(i=0;i<A.length;i++){
+	for(i=0;i<Math.max(3, A.length);i++){
 		var j=0;
 		for(j=0;j<A[i].length;j++){
 			A[i][j] = A[i][j]*x;
@@ -494,7 +493,6 @@ function Vx(v,x){
 function Ab(A,v){
 	var ve = [0,0,0];
 	var ic = 0;
-	var mc = 0;
 	for(ic=0;ic<3;ic++){
 		var cell = 0;
 		for(cell=0;cell<3;cell++){
@@ -505,26 +503,13 @@ function Ab(A,v){
 }
 
 /*
-	SHAPE * MATRIX
-	
-*/
-function shapeXm(shape, A){
-	var i = 0;
-	var newShape = new Array();
-	for(i=0;i<shape.length;i++){
-		newShape[i] = nodesXm(shape[i],A);
-	}
-	return newShape;
-}
-
-/*
 	NODES * MATRIX
 
 */
 function nodesXm(nodes,A){
 	var i = 0;
 	var newNodes = new Array(); 
-	for(i=0;i<nodes.length;i++){
+	for(i=0;i<Math.max(3, nodes.length);i++){
 		newNodes[i] = Ab(A,nodes[i]);
 	}
 	return newNodes;

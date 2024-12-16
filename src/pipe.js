@@ -158,8 +158,6 @@ function pipe3(u,v,w,r,s){
 		for(j=0;j<=s;j++){
 			var a = 2*Math.PI/s*j;
 			var A = Ab([[Math.cos(a),Math.sin(a),0],[-Math.sin(a),Math.cos(a),0],[0,0,1]],[w/2,w/2,0]);
-			//alert(A);
-			//alert(multMatrix(N,Ninv));
 			nodes[j] = 
 				addV(addV(u,Vx(ln,1/r*i)),Ab(N,Ab(Ninv,A)));
 		
@@ -421,4 +419,62 @@ sciMonk.mapRingPipe=function(ringNodes,w,r,s){
 		ringPipes[rns] = pipe3(ringNodes[0], ringNodes[ringNodes.length-1],w,r,s);
 		
 	return ringPipes;
+}
+
+/*
+	CONCAT ARRAY
+	returns a concatenated copy of two given arrays
+*/
+function concatArray(a1,a2){
+	if(!a2)
+		return a1;
+	if(!a1)
+		return a2;
+	if(a2.lenght<1)
+		return a1;
+	if(a1.length<1)
+		return a2;
+	var i = 0;
+	var c = copyArray(a1);
+	var len =  c.length;
+	for(i=0;i<a2.length;i++){
+		 c[len+i] = a2[i];
+	}
+	return  c;
+}
+
+
+/*
+	SHUFFLE ARRAY
+	returns a shuffled copy of a given array
+
+*/
+function shuffle(array, st){
+	var i =0;
+	var j=0;
+	var array2 = copyArray(array);
+	
+	for(j=0;j<array.length;j++){
+		if(j+st<0)
+			array[array.length+st+j] = array2[j];
+		else if(j+st>(array.length-1))
+			array[j+st-array.length] = array2[j]; 
+		else
+			array[j+st] = array2[j]; 
+	}
+	
+	return array;
+}
+
+/*
+	BATCH SHUFFLE
+	returns an array of shuffled copies of given arrays
+*/
+function batchShuffle(batch, steps){
+	var i = 0;
+	for(i=0;i<batch.length;i++){
+		batch[i] = shuffle(batch[i], steps);
+	}
+	return batch;
+
 }

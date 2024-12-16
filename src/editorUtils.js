@@ -241,3 +241,23 @@ function validateStringPositive(string,accepts){
 	return true;
 }
 
+
+/*
+	REPLACE ALL
+	replaces all occurences in string 
+*/
+function replaceAll(txt,rep,newStr){
+	var len=rep.length;
+	var ti=0;
+	while(ti<=txt.length-len){
+		if(txt.substring(ti,ti+len)==rep){
+			txt = txt.substring(0,ti)+newStr+txt.substring(ti+len,txt.length);
+			ti = ti+newStr.length;
+		}else{
+			ti++;
+		}
+
+	}
+	return txt;
+}
+

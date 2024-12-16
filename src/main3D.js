@@ -197,23 +197,22 @@ function iniDepthMap(){
 }
 
 
-
 /*
 	CALLS DRAWING FUNCTIONS FOR DRAWLINE
-
-*/
-function drawLine( x1, x2, y1, y2, z1, z2, colour ){
-		
-		line(x1, x2, y1, y2, z1, z2, colour);
-	
-}
-
-/*
-	DRAW LINE
-
 */
 
-function line ( x1,x2,y1,y2,z1,z2,co,id){
+/**
+ * Draw line
+ * @param {*} x1 
+ * @param {*} x2 
+ * @param {*} y1 
+ * @param {*} y2 
+ * @param {*} z1 
+ * @param {*} z2 
+ * @param {*} co 
+ * @param {*} id 
+ */
+function drawLine( x1, x2, y1, y2, z1, z2, co, id){
 	var u =[x1,y1];
 	var v =[x2,y2];
 	var uv = uToV(u,v);
@@ -239,33 +238,12 @@ function line ( x1,x2,y1,y2,z1,z2,co,id){
 			}
 		}
 	}
-	
 }
-
 
 /*
 	FILL
 
 */
-
-function fillTrianglePlane(cords,colour,id){
-    if(cords[0].length > 2){
-       
-      //cords = switchPlaces(cords,0,1);
-      if(sciMonk.shadow){
-        var shadow = multipleNopdes(castShadow(cords)); 
-        fillTriangle(shadow,sciMonk.shadowColour,sciMonk.undefinedShapeId);
-      }
-      
-      // draw nodes
-      for(var i = 0; i < cords.length; i ++){
-        colour = setAlpha(cords[i],colour);
-        var nodes = multipleNopdes(cords[i]); 
-        //fillRect(nodes,colour,id);
-        fillTriangle(nodes,colour,id);
-      }
-    } 
-}
 
 function fillTriangle(plane,colour,id){
 	var a = [plane[1][0]-plane[0][0],plane[1][1]-plane[0][1]];
@@ -281,7 +259,7 @@ function drawTriangle(u,ux,uxZ,v,vx,vxZ,colour,id){
 	var i = 0;
 	var uxLen = vLen(ux)*1.5;
 	for(i=0;i<uxLen;i++){
-		line(
+		drawLine(
 		u[0] + ux[0]/uxLen*i, 
 		v[0] + vx[0],
 		u[1] + ux[1]/uxLen*i,
@@ -290,12 +268,6 @@ function drawTriangle(u,ux,uxZ,v,vx,vxZ,colour,id){
 		v[2] + vxZ,
 		colour,id);//-
 	}
-}
-
-//new
-function fillPolygon(nds,colour,id){
-		fill(nds,colour,id);
-
 }
 
 /*

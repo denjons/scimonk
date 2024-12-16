@@ -142,7 +142,7 @@ function scaleShape(shape,vn,origo){
 	}
 	var nv = new Array();
 	var i = 0; 
-	for(i=0;i<shape.length;i++){
+	for(i=0;i<Math.max(3, shape.length);i++){
 		nv[i] = batchScale(shape[i],origo,vn);
 	}
 	return nv;
@@ -274,7 +274,7 @@ function rotate(origo,shape,rot){
 	var ns = new Array();
 	for(i=0;i<shape.length;i++){
 		ns[i] = new Array();
-		for(j=0;j<shape[i].length;j++){
+		for(j=0;j<Math.max(3, shape[i].length);j++){
 			ns[i][j] = rotateNode(shape[i][j],rot,origo);
 		}
 	}
@@ -333,7 +333,7 @@ function batchTranslateShapes(shapes, v){
 function translateShape(shape,v){
 	var B = new Array();
 	var i = 0;
-	for(i=0;i<shape.length;i++){
+	for(i=0;i<Math.max(3, shape.length);i++){
 		B[i] = translateNodes(shape[i],v);
 	}
 	return B;
@@ -358,45 +358,20 @@ function translateNodes(nodes,v){
 
 */
 sciMonk.lineMap=function(ln, colour, alpha){
-	sciMonk.ringMap(ln, colour, alpha);
-	//for(nm=1;nm<ln.length;nm++){
-		//sciMonk.mapLine(ln[nm-1], ln[nm], colour, alpha);
-	//}
-}
-
- // UTILITY METHODS
-sciMonk.mapLine = function(line1, line2, colour,alpha){
-	var a = Math.max(line1.length,line2.length);
-	var b = Math.min(line1.length,line2.length);
-	var c = b/a;
-	var i = 0;
-	var j = 0;
-	for(i=0;i<a;i++){
-		if(line1.length == a)
-			nodeVector(line1[i], line2[j], colour, alpha);
-		else
-			nodeVector(line2[i], line1[j], colour, alpha);
-		
-		j = Math.round(c*(i+1));
-		if(j>=b)
-			j=j-b;
+	for(var i=0;i<ln.length;i++){
+		sciMonk.mapRing(ln[i], colour, alpha);
 	}
 }
 
-sciMonk.ringMap=function(ringLines, colour, alpha){
-	for(rln=0;rln<ringLines.length;rln++){
-		sciMonk.mapRing(ringLines[rln], colour, alpha);
-	}
+sciMonk.mapRing=function(nodes, colour, alpha){
+  if(nodes.length == 2){ // Line
+    nodeVector(nodes[0], nodes[1], colour, alpha);
+  }else if(nodes.length > 2){ // Triangle 3 or 4 (3 + unit vector)
+    nodeVector(nodes[0], nodes[1], colour, alpha);
+    nodeVector(nodes[1], nodes[2], colour, alpha);
+    nodeVector(nodes[2], nodes[0], colour, alpha);
+  }
 }
-
-sciMonk.mapRing=function(ringNodes, colour, alpha){
-	for(rns=0;rns<ringNodes.length-1;rns++){
-		nodeVector(ringNodes[rns], ringNodes[rns+1], colour, alpha);
-	}
-	if(ringNodes.length > 1)
-		nodeVector(ringNodes[0], ringNodes[ringNodes.length-1], colour, alpha);
-}
-
 
 /*
 	BATCH LINE MAP
@@ -416,8 +391,18 @@ sciMonk.batchLineMap=function(lines, colours, multiColour, alpha){
 	COLOUR MAP
 
 */
-sciMonk.colourMap=function(ln,colour,id){
-		fillTrianglePlane(ln,colour,id);
+sciMonk.colourMap=function(triangles,colour,id){
+  if(triangles[0].length > 2){
+    for(var i = 0; i < triangles.length; i ++){
+      if(sciMonk.shadow){
+        var shadow = multipleNopdes(castShadow(triangles[i])); 
+        fillTriangle(shadow,sciMonk.shadowColour,sciMonk.undefinedShapeId);
+      }
+      colour = setAlpha(triangles[i],colour);
+      var nodes = multipleNopdes(triangles[i]); 
+      fillTriangle(nodes,colour,id);
+    }
+  } 
 }
 
 //	UTILITY METHODS
@@ -471,7 +456,7 @@ sciMonk.lineMapObject = function(obj,alpha){
 sciMonk.batchLineMapObjects = function(objs,alpha){
 	var i = 0;
 	for(i=0;i<objs.length;i++){
-		sciMonk.lineMapObject(objs[i],objs[i].colour,alpha);
+		sciMonk.lineMapObject(objs[i],alpha);
 	}
 }
 
@@ -511,89 +496,10 @@ sciMonk.nodeCross=function(node,w,colour){
 	nodeVector([node[0],node[1],node[2]-w],[node[0],node[1],node[2]+w], colour, false);
 }
 
-/*
-	3D GRAPH
-
-*/
-sciMonk.graph3d=function(w,colour){
-		w = w/2;
-		nodeVector([-w,0,0],[w,0,0], colour, false);
-		nodeVector([0,-w,0],[0,w,0], colour, false);
-		nodeVector([0,0,-w],[0,0,w], colour, false);
-
-}
-
 
 /*
 		OTHER UTLITIES
 */
-
-/*
-	BUBBLE SORT
-	Sorts an array with the smallest at the beginning
-
-*/
-function bubbleSort( array ){
-	for ( w = 0; w <= array.length; w++){
-		var first = array[array.Length - 1];
-		for ( i = array.length - 1 ; i >= 0; i--){
-			if (first < array[i]){
-				array[i + 1] = array[i];
-				array[i] = first;
-			}else{
-				first = array[i];
-			}
-		}
-	}
-	return array;
-}
-
-/*
-	SHUFFLE ARRAY
-	returns a shuffled copy of a given array
-
-*/
-function shuffle(array, st){
-	var i =0;
-	var j=0;
-	var array2 = copyArray(array);
-	
-	for(j=0;j<array.length;j++){
-		if(j+st<0)
-			array[array.length+st+j] = array2[j];
-		else if(j+st>(array.length-1))
-			array[j+st-array.length] = array2[j]; 
-		else
-			array[j+st] = array2[j]; 
-	}
-	
-	return array;
-}
-
-/*
-	BATCH SHUFFLE
-	returns an array of shuffled copies of given arrays
-*/
-function batchShuffle(batch, steps){
-	var i = 0;
-	for(i=0;i<batch.length;i++){
-		batch[i] = shuffle(batch[i], steps);
-	}
-	return batch;
-
-}
-
-/*
-	SWITCH PLACES
-	return a copy of a given array with 
-*/
-function switchPlaces(array, i, j){
-	var ar = copyArray(array);
-	var c = ar[i];
-	ar[i] = ar[j];
-	ar[j] = c;
-	return ar;
-}
 
 /*
 	COPY ARRAY
@@ -608,54 +514,6 @@ function copyArray(a1){
 	}
 		
 	return a2;
-}
-
-/*
-	REVERSE ARRAY
-	returns a reversed copy of a given array
-*/
-function reverse(array){
-	var array2 = new Array();
-	var i=0;
-	var len = array.length;
-	for(i=0;i<len;i++){
-		array2[i] = array[len-1-i];
-	}
-	return array2;
-}
-
-/*
-	BATCH REVERSE
-	returns an array of revered copies of given arrays
-*/
-function batchReverse(batch){
-	var i = 0;
-	for(i=0;i<batch.length;i++){
-		batch[i] = reverse(batch[i]);
-	}
-	return batch;
-}
-
-/*
-	CONCAT ARRAY
-	returns a concatenated copy of two given arrays
-*/
-function concatArray(a1,a2){
-	if(!a2)
-		return a1;
-	if(!a1)
-		return a2;
-	if(a2.lenght<1)
-		return a1;
-	if(a1.length<1)
-		return a2;
-	var i = 0;
-	var c = copyArray(a1);
-	var len =  c.length;
-	for(i=0;i<a2.length;i++){
-		 c[len+i] = a2[i];
-	}
-	return  c;
 }
 
 /*
@@ -679,43 +537,6 @@ function removeElement(array,e){
 	return array;
 }
 
-/*
-	TAKE N FIRST ELEMENTS IN ARRAY
-	returns an array of the first n elements
-*/
-
-function take(array,n){
-	if(n < array.length){
-		var newArray = new Array();
-		var i =0;
-		for(i=0;i<n;i++){
-			newArray[i] = array[i];
-		}
-		return newArray;
-	}else{
-		return array;
-	}
-}
-
-/*
-	DROP N FIRST ELEMENTS IN ARRAY
-	returns a copy of a given array without the n first elements
-*/
-
-function drop(array,n){
-	if(n < array.length){
-		var newArray = new Array();
-		var i =0;
-		var j=0;
-		for(i=n;i<array.length;i++){
-			newArray[j] = array[i];
-			j++;
-		}
-		return newArray;
-	}else{
-		return array;
-	}
-}
 
 /*
 	LIST
@@ -787,21 +608,3 @@ sciMonk.copyModel = function(model){
 
 
 
-/*
-	REPLACE ALL
-	replaces all occurences in string 
-*/
-function replaceAll(txt,rep,newStr){
-	var len=rep.length;
-	var ti=0;
-	while(ti<=txt.length-len){
-		if(txt.substring(ti,ti+len)==rep){
-			txt = txt.substring(0,ti)+newStr+txt.substring(ti+len,txt.length);
-			ti = ti+newStr.length;
-		}else{
-			ti++;
-		}
-
-	}
-	return txt;
-}
