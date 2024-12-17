@@ -277,6 +277,7 @@ function saveOptions(view){
 
 function saveModel(view){
   console.log(view);
+  modelToSTL();
   sciMonk.viewStack.pop();
 }
 
@@ -1263,8 +1264,7 @@ function dragOverEventHandler(event){
 function parseSTL(arrayBuffer){
   // Header (80 bytes) and number of triangles (4 bytes) 0 - 83
   // Each triangle is 50 bytes unit vector (12 bytes), 3 points (12 bytes), and attribute count (2 bytes)
-  var result = new Array();
-  console.log(arrayBuffer.byteLength);
+  const result = new Array();
   for(var i = 84; i < arrayBuffer.byteLength; i += 50) {
     var points = new Float32Array(arrayBuffer.slice(i, i+48));
     result.push([[points[3],points[4],points[5]], [points[6],points[7],points[8]], [points[9],points[10],points[11]]]);
@@ -1272,3 +1272,46 @@ function parseSTL(arrayBuffer){
   addShapeToModel(result, "imported_stl", [1,1,1,255], [1,1,1], [1,1,1]);
   updateShapeList();
 }
+
+function modelToSTL(){
+  console.log(sciMonk.currentModel.shapes);
+  var triangles = new Array();
+  for(model of sciMonk.currentModel.shapes) {
+    triangles = triangles.concat(model.shape);
+  }
+
+  const count = triangles.length;
+
+  console.log(count);
+  const bufferLength = 84 + count*50;
+  const buffer = new ArrayBuffer(bufferLength);
+  const dataView = new DataView(buffer);
+  var j = 0;
+  dataView.setUint32(80, count, true); // UINT32       – Number of triangles    -      4 bytes
+  for(var i = 84; i < buffer.byteLength; i+= 50){
+    var shape = triangles[j];
+    // REAL32[3] – Normal vector - 12 bytes
+    dataView.setFloat32(i, 0, true);
+    dataView.setFloat32(i + 4, 0, true);
+    dataView.setFloat32(i + 8, 0, true);
+    // triangles
+    dataView.setFloat32(i + 12, shape[0][0], true);
+    dataView.setFloat32(i + 16, shape[0][1], true);
+    dataView.setFloat32(i + 20, shape[0][2], true);
+    dataView.setFloat32(i + 24, shape[1][0], true);
+    dataView.setFloat32(i + 28, shape[1][1], true);
+    dataView.setFloat32(i + 32, shape[1][2], true);
+    dataView.setFloat32(i + 36, shape[2][0], true);
+    dataView.setFloat32(i + 40, shape[2][1], true);
+    dataView.setFloat32(i + 44, shape[2][2], true);
+    j++;
+  }
+
+  var file = new Blob([buffer], {type: "application/octet-binary;charset=utf-8"});
+  var a = document.createElement("a"), url = URL.createObjectURL(file);
+  a.href = URL.createObjectURL( file );;
+  a.download = sciMonk.currentModel.name +".stl";
+  document.body.appendChild(a);
+  a.click();
+
+} 
