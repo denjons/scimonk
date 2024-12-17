@@ -276,7 +276,8 @@ function saveOptions(view){
 }
 
 function saveModel(view){
-  console.log("Not implemented");
+  console.log(view);
+  sciMonk.viewStack.pop();
 }
 
 function loadModel(id,view){

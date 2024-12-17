@@ -142,7 +142,8 @@ function scaleShape(shape,vn,origo){
 	}
 	var nv = new Array();
 	var i = 0; 
-	for(i=0;i<Math.max(3, shape.length);i++){
+  // console.log("scaleShape: "+ shape.length); all vertecies
+	for(i=0;i<shape.length;i++){
 		nv[i] = batchScale(shape[i],origo,vn);
 	}
 	return nv;
@@ -168,8 +169,9 @@ function getOrigo(nodes){
 	var x=0;
 	var y=0;
 	var z=0;
-	var len = nodes.length;
+	var len = nodes.length; // line 2 or triangle 3
 	var i=0;
+  //console.log("getOrigo: "+ len); is 4
 	for(i=0;i<len;i++){
 		x+=nodes[i][0];
 		y+=nodes[i][1];
@@ -274,7 +276,7 @@ function rotate(origo,shape,rot){
 	var ns = new Array();
 	for(i=0;i<shape.length;i++){
 		ns[i] = new Array();
-		for(j=0;j<Math.max(3, shape[i].length);j++){
+		for(j=0;j<shape[i].length;j++){
 			ns[i][j] = rotateNode(shape[i][j],rot,origo);
 		}
 	}
@@ -333,7 +335,7 @@ function batchTranslateShapes(shapes, v){
 function translateShape(shape,v){
 	var B = new Array();
 	var i = 0;
-	for(i=0;i<Math.max(3, shape.length);i++){
+	for(i=0;i<shape.length;i++){
 		B[i] = translateNodes(shape[i],v);
 	}
 	return B;
