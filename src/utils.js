@@ -607,6 +607,64 @@ sciMonk.copyModel = function(model){
 	return nm;
 }
 
+/**
+ *  Crush triangles
+ * @param {*} shape 
+ */
+sciMonk.crushTriangles = function(shape, times){
+  for(var i = 0; i < times; i++){
+    const array = new Array();
+    for(triangle of shape){
+      crushTriangle(triangle, array);
+    }
+    if(i == times - 1){
+      return array;
+    }
+    shape = array;
+  }
+
+}
+
+function crushTriangle(triangle, dest){
+    const p1 = triangle[0];
+    const p2 = triangle[1];
+    const p3 = triangle[2];
+    const origo = getOrigo(triangle);
+    const np1 = middle(p1, p2);
+    dest.push([p1, np1, origo]);
+    dest.push([np1, p2, origo]);
+    const np2 = middle(p2, p3);
+    dest.push([p2, np2, origo]);
+    dest.push([np2, p3, origo]);
+    const np3 = middle(p3, p1);
+    dest.push([p3, np3, origo]);
+    dest.push([np3, p1, origo]);
+}
+
+function middle(p1, p2){
+    var uv = unitVector(p1, p2);
+    var len = vDist(p1, p2);
+    return addV(p1 , Vx(uv, len/2));
+}
+
+/**
+ * shake triangles
+ * @param {*} shape 
+ * @param {*} scale 
+ */
+sciMonk.shakeTriangles = function(shape, scale){
+  for(triangle of shape){
+    for(var i = 0 ; i < triangle.length; i++){
+      var point = copyArray(triangle[i]);
+      point[0] += point[2]%scale;
+      point[1] += point[0]%scale;
+      point[2] += point[1]%scale;
+      triangle[i] = point;
+    }
+  }
+}
+
+
 
 
 
