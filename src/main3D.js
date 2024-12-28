@@ -216,7 +216,7 @@ function drawLine( x1, x2, y1, y2, z1, z2, co, id){
 	var u =[x1,y1];
 	var v =[x2,y2];
 	var uv = uToV(u,v);
-	var len = vLen(uv)*1.8;
+	var len = vLen(uv)*1.2;
 	var w = (z2-z1)/len;// Depth test
 	var t =0;
 	var Z = sciMonk.Depth/3;

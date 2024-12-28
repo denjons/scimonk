@@ -653,15 +653,23 @@ function middle(p1, p2){
  * @param {*} scale 
  */
 sciMonk.shakeTriangles = function(shape, scale){
+  scale = Math.ceil(scale*Math.random());
   for(triangle of shape){
     for(var i = 0 ; i < triangle.length; i++){
       var point = copyArray(triangle[i]);
-      point[0] += point[2]%scale;
-      point[1] += point[0]%scale;
-      point[2] += point[1]%scale;
+      point[0] += (point[2]%scale)*sign(point[0]);
+      point[1] += (point[0]%scale)*sign(point[1]);
+      point[2] += (point[1]%scale)*sign(point[2]);
       triangle[i] = point;
     }
   }
+}
+
+function sign(n) {
+  if(n < 0){
+    return -1;
+  }
+  return 1;
 }
 
 
