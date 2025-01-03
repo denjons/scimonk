@@ -1,165 +1,5 @@
 
 /*
-	SCIMONK
-	BETA VERSION_1.0
-	BY DENNIS JÖNSSON,
-	17-03-2014
-
-*/
-
-function rightHandTriangle(a, b, c) {
-  let x = Math.max(a[0],Math.max(b[0], c[0]));
-  if(a[0] == x){
-    let y = Math.max(b[1], c[1]);
-    if(b[1] == y) {
-      return [a, b, c];
-    }else{
-      return [a, c, b];
-    }
-  }else if(b[0] == x){
-    let y = Math.max(b[1], c[1]);
-    if(a[1] == y) {
-      return [b, a, c];
-    }else{
-      return [b, c, a];
-    }
-  }else if(c[0] == x){
-    let y = Math.max(b[1], c[1]);
-    if(a[1] == y) {
-      return [c, a, b];
-    }else{
-      return [c, b, a];
-    }
-  }
-}
-
-/*
-	SPHERE
-	
-*/
-function sphere(pos,size,sn,sr){
-	var sphere = new Array();
-	var top = [pos[0],pos[1]+size[1]/2,pos[2]];
-  var bottom =  [pos[0],pos[1]-size[1]/2,pos[2]];
-	for(var i=1;i<sn;i++){ // computes each line
-		for(var j=0;j<sr;j++){ // computes each node on one line
-			if(i==1){
-        sphere.push(rightHandTriangle(top, sphereCoordinate(pos, size, i, j, sn, sr), sphereCoordinate(pos, size, i, (j+1)%sr, sn, sr)))
-        squareToTriangles([sphereCoordinate(pos, size, i, j, sn, sr), sphereCoordinate(pos, size, i, (j+1)%sr, sn, sr),
-                          sphereCoordinate(pos, size, i+1, (j+1)%sr, sn, sr), sphereCoordinate(pos, size, i+1, j, sn, sr)], sphere);
-      }else if(i==sn-1){
-        sphere.push(rightHandTriangle(bottom, sphereCoordinate(pos, size, i, j, sn, sr), sphereCoordinate(pos, size, i, (j+1)%sr, sn, sr)))
-      }else{
-        squareToTriangles([sphereCoordinate(pos, size, i, j, sn, sr), sphereCoordinate(pos, size, i, (j+1)%sr, sn, sr),
-                          sphereCoordinate(pos, size, i+1, (j+1)%sr, sn, sr), sphereCoordinate(pos, size, i+1, j, sn, sr)], sphere);
-      }
-		}
-	}
-	return sphere;
-}
-
-function sphereCoordinate(pos, size, i, j, sn, sr) {
-  var end = (2*Math.PI)/sr*(j-1);
-  return [pos[0]+((size[0]/2)*Math.sin(Math.PI/sn*i))*Math.cos(end), 
-						pos[1]+(size[1]/2)*Math.sin(Math.PI/2-Math.PI/sn*i),
-						pos[2]+((size[2]/2)*Math.sin(Math.PI/sn*i))*Math.sin(end)];
-}
-
-/*
-	BOX
-	
-*/
-function box(pos,size){
-	return box2(pos[0], pos[1], pos[2], size[0], size[1],size[2]);
-}
-function box2(x, y, z, w, h, d){
-	w=w/2;
-	h=h/2;
-	d=d/2;
-  var array = new Array();
-  // front
-  squareToTriangles([[x-w,y-h,z+d],[x-w,y+h,z+d],[x+w,y+h,z+d],[x+w,y-h,z+d]], array);
-  // back
-  squareToTriangles([[x-w,y-h,z-d],[x-w,y+h,z-d],[x+w,y+h,z-d],[x+w,y-h,z-d]], array);
-  // top
-  squareToTriangles([[x-w,y+h,z+d],[x-w,y+h,z-d],[x+w,y+h,z-d],[x+w,y+h,z+d]], array);
-  // bottom
-  squareToTriangles([[x-w,y-h,z+d],[x-w,y-h,z-d],[x+w,y-h,z-d],[x+w,y-h,z+d]], array);
-  // left
-  squareToTriangles([[x-w,y+h,z+d],[x-w,y+h,z-d],[x-w,y-h,z-d],[x-w,y-h,z+d]], array);
-    // right
-  squareToTriangles([[x+w,y+h,z+d],[x+w,y+h,z-d],[x+w,y-h,z-d],[x+w,y-h,z+d]], array);
-  return array;
-	//return [[[x-w,y-h,z+d],[x+w,y-h,z+d],[x+w,y-h,z-d],[x-w,y-h,z-d]],
-	//		[[x-w,y+h,z+d],[x+w,y+h,z+d],[x+w,y+h,z-d],[x-w,y+h,z-d]]];
-
-}
-
-function squareToTriangles(square, triangles) {
-  triangles.push(rightHandTriangle(square[0], square[1], square[2]));
-  triangles.push(rightHandTriangle(square[2], square[3], square[0]));
-} 
-
-/**
- * cross
- * @param {*} p 
- * @param {*} width 
- * @returns 
- */
-function cross(p, width) {
-  var w = width/2;
-  return [[[p[0]-w, p[1], p[2]], [p[0]+w, p[1], p[2]]],
-  [[p[0], p[1]-w, p[2]], [p[0], p[1]+w, p[2]]],
-[[p[0], p[1], p[2]-w], [p[0], p[1], p[2]+w]]];
-}
-
-/*
-	CYLINDER
-	
-*/
-function cylinder(pos,size,lns){
-	var cylinder = new Array(); 
-	var top = xRzCircle([pos[0],pos[1]-size[1]/2,pos[2]],size[0]/2, size[2]/2, lns)[0];
-	var bottom = xRzCircle([pos[0],pos[1]+size[1]/2,pos[2]],size[0]/2, size[2]/2, lns)[0];
-  for(var i = 0; i < top.length; i++){
-    squareToTriangles([top[i], top[(i+1)%top.length], bottom[(i+1)%top.length], bottom[i]],cylinder)
-  }
-	return cylinder;
-	
-}
-
-/*
-	CONE
-
-*/
-function cone(pos,sc,s){
-  var cone = new Array();
-	pos[1] = pos[1] - sc[1]/2;
-	var bottom = xRzCircle(pos, sc[0]/2, sc[2]/2, s)[0];
-	pos[1] = pos[1]+sc[1];
-	for(var i = 0; i < bottom.length; i++) {
-    cone.push(rightHandTriangle(pos, bottom[i], bottom[(i+1)%bottom.length]));
-  }
-	return cone;
-}
-
-
-/*
-	XZ CIRCLE
-
-*/
-function xRzCircle(pos, width, depth, ls){
-	var i = 0;
-	var lines = new Array();
-	for(i=0;i<=ls;i++){
-		lines[i] = [pos[0]+width*Math.cos(2*Math.PI/ls*i),
-						pos[1],
-						pos[2]+depth*Math.sin(2*Math.PI/ls*i)];
-	}
-	return [lines];
-}
-
-/*
 	SCALE SHAPE
 */
 function scaleShape(shape,vn,origo){
@@ -303,7 +143,7 @@ function rotate(origo,shape,rot){
 	for(i=0;i<shape.length;i++){
 		ns[i] = new Array();
 		for(j=0;j<shape[i].length;j++){
-			ns[i][j] = rotateNode(shape[i][j],rot,origo);
+			ns[i][j] = sciMonk.rotateNode(shape[i][j],rot,origo);
 		}
 	}
 	return ns;
@@ -315,13 +155,7 @@ function rotate(origo,shape,rot){
 	ROTATE NODE
 
 */
-function rotateNode(node,rad,origo){
-	return rotateNodeT(
-				rotateNodeT(
-					rotateNodeT(node,origo,XZrot(rad[0])),
-						origo,YZrot(rad[1])),
-					origo,XYrot(rad[2]));
-}
+
 
 
 /*
@@ -367,51 +201,39 @@ function translateShape(shape,v){
 	return B;
 }
 
-/*
-	TRANSLATE NODES
 
-*/
-function translateNodes(nodes,v){
-	var i = 0;
-	var newNodes = new Array();
-	for(i=0;i<nodes.length;i++){
-		newNodes[i] = addV(v,nodes[i]);
-	}
-	return newNodes;
-}
+  function translateNodes(nodes,v){
+    var i = 0;
+    var newNodes = new Array();
+    for(i=0;i<nodes.length;i++){
+      newNodes[i] = addV(v,nodes[i]);
+    }
+    return newNodes;
+  }
+
 
 
 /*
 	LINE MAP
 
 */
-sciMonk.lineMap=function(ln, colour, alpha){
+const lineMap=function(ln, colour, alpha){
 	for(var i=0;i<ln.length;i++){
-		sciMonk.mapRing(ln[i], colour, alpha);
+		sciMonk.lines(ln[i], colour, alpha);
 	}
-}
-
-sciMonk.mapRing=function(nodes, colour, alpha){
-  if(nodes.length == 2){ // Line
-    nodeVector(nodes[0], nodes[1], colour, alpha);
-  }else if(nodes.length > 2){ // Triangle 3 or 4 (3 + unit vector)
-    nodeVector(nodes[0], nodes[1], colour, alpha);
-    nodeVector(nodes[1], nodes[2], colour, alpha);
-    nodeVector(nodes[2], nodes[0], colour, alpha);
-  }
 }
 
 /*
 	BATCH LINE MAP
 
 */
-sciMonk.batchLineMap=function(lines, colours, multiColour, alpha){
+const batchLineMap=function(lines, colours, multiColour, alpha){
 	var i = 0;
 	for(i=0;i<lines.length;i++){
 		if(multiColour)
-			sciMonk.lineMap(lines[i], colours[i], alpha);
+			lineMap(lines[i], colours[i], alpha);
 		else
-			sciMonk.lineMap(lines[i], colours, alpha);
+			lineMap(lines[i], colours, alpha);
 	}
 }
 
@@ -419,19 +241,7 @@ sciMonk.batchLineMap=function(lines, colours, multiColour, alpha){
 	COLOUR MAP
 
 */
-sciMonk.colourMap=function(triangles,colour,id){
-  if(triangles[0].length > 2){
-    for(var i = 0; i < triangles.length; i ++){
-      if(sciMonk.shadow){
-        var shadow = multipleNopdes(castShadow(triangles[i])); 
-        fillTriangle(shadow,sciMonk.shadowColour,sciMonk.undefinedShapeId);
-      }
-      colour = setAlpha(triangles[i],colour);
-      var nodes = multipleNopdes(triangles[i]); 
-      fillTriangle(nodes,colour,id);
-    }
-  } 
-}
+
 
 //	UTILITY METHODS
 
@@ -439,13 +249,13 @@ sciMonk.colourMap=function(triangles,colour,id){
 	BATCH COLOUR MAP
 	
 */
-sciMonk.batchColourMap = function(shapes,colours,multiColour,id){
+const batchColourMap = function(shapes,colours,multiColour,id){
 	var i =0;
 	for(i=0;i<shapes.length;i++){
 		if(multiColour)
-			sciMonk.colourMap(shapes[i],colours[i],id);
+			sciMonk.fill(shapes[i],colours[i],id);
 		else
-			sciMonk.colourMap(shapes[i],colours,id);
+			sciMonk.fill(shapes[i],colours,id);
 		
 	}
 }
@@ -453,46 +263,41 @@ sciMonk.batchColourMap = function(shapes,colours,multiColour,id){
 /*
 	COLOUR MAP SHAPE
 */
-sciMonk.colourMapShape = function(obj){
-	sciMonk.colourMap(obj.shape,obj.colour,obj.shapeId);
+const colourMapShape = function(obj){
+	sciMonk.fill(obj.triangles,obj.colour,obj.shapeId);
 }
 /*
 	BATCH COLOUR MAP SHAPES
 */
-sciMonk.batchColourMapShapes = function(objs){
+const batchColourMapShapes = function(objs){
 	var i = 0;
 	for(i=0;i<objs.length;i++){
-		sciMonk.colourMapShape(objs[i]);
+		colourMapShape(objs[i]);
 	}
 }
 
-/*
-	COLOUR MAP MODEL
-*/
-sciMonk.colourMapModel = function(model){
-	sciMonk.batchColourMapShapes(model.shapes);
-}
+
 /*
 	LINE MAP OBJECT
 */
-sciMonk.lineMapObject = function(obj,alpha){
-	sciMonk.lineMap(obj.shape,obj.colour,alpha);
+const lineMapObject = function(obj,alpha){
+	lineMap(obj.shape,obj.colour,alpha);
 }
 /*
 	BATCH LINE MAP OBJECTS
 */
-sciMonk.batchLineMapObjects = function(objs,alpha){
+const batchLineMapObjects = function(objs,alpha){
 	var i = 0;
 	for(i=0;i<objs.length;i++){
-		sciMonk.lineMapObject(objs[i],alpha);
+		lineMapObject(objs[i],alpha);
 	}
 }
 
 /*
 	LINE MAP MODEL
 */
-sciMonk.lineMapModel = function(model, alpha){
-	sciMonk.batchLineMapObjects(model.shapes, alpha);
+const lineMapModel = function(model, alpha){
+	batchLineMapObjects(model.shapes, alpha);
 }
 
 
@@ -517,12 +322,7 @@ sciMonk.mapNodes=function(nodes,w){
 	NODE CROSS
 	
 */
-sciMonk.nodeCross=function(node,w,colour){
-	w = w/2;
-	nodeVector([node[0]-w,node[1],node[2]],[node[0]+w,node[1],node[2]], colour, false);
-	nodeVector([node[0],node[1]-w,node[2]],[node[0],node[1]+w,node[2]], colour, false);
-	nodeVector([node[0],node[1],node[2]-w],[node[0],node[1],node[2]+w], colour, false);
-}
+
 
 
 /*
@@ -633,10 +433,9 @@ sciMonk.copyModel = function(model){
 	return nm;
 }
 
-/**
- *  Crush triangles
- * @param {*} shape 
- */
+
+/*
+
 sciMonk.crushTriangles = function(shape, times){
   for(var i = 0; i < times; i++){
     const array = new Array();
@@ -667,17 +466,8 @@ function crushTriangle(triangle, dest){
     dest.push([np3, p1, origo]);
 }
 
-function middle(p1, p2){
-    var uv = unitVector(p1, p2);
-    var len = vDist(p1, p2);
-    return addV(p1 , Vx(uv, len/2));
-}
 
-/**
- * shake triangles
- * @param {*} shape 
- * @param {*} scale 
- */
+
 sciMonk.shakeTriangles = function(shape, scale){
   scale = Math.ceil(scale*Math.random());
   for(triangle of shape){
@@ -691,13 +481,8 @@ sciMonk.shakeTriangles = function(shape, scale){
   }
 }
 
-function sign(n) {
-  if(n < 0){
-    return -1;
-  }
-  return 1;
-}
 
+*/
 
 
 

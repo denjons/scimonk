@@ -8,108 +8,6 @@
 */
 
 
-/*
-	X COORDINATE ON CANVAS
-
-*/
-function xOnCanvas(x){
-	return (sciMonk.CanvasWidth/sciMonk.Width)*x;
-}
-
-/*
-	Y COORDINATE ON CANVAS
-
-*/
-function yOnCanvas(y){
-	return sciMonk.CanvasHeight - (sciMonk.CanvasHeight/sciMonk.Height)*y;
-}
-
-
-/*
-	X ON GRAPH
-
-*/
-function xGraph(x){
-	return x - (sciMonk.Width/2);
-}
-
-/*
-	Y ON GRAPH
-
-*/
-function yGraph(y){
-	return (y - (sciMonk.Height/2));
-}
-
-/*
-	X TO GRAPH
-	From canvas to graph coordinate
-
-*/
-function xToGraph(x){
-	return (sciMonk.Width/sciMonk.CanvasWidth*(x - (sciMonk.CanvasWidth/2)))*0.5;
-}
-
-/*
-	Y TO GRAPH
-	From canvas to graph coordinate
-
-*/
-function yToGraph(y){
-	return (sciMonk.Height/sciMonk.CanvasHeight*(y - (sciMonk.CanvasHeight/2))*-1)*0.5;
-}
-
-// ----------------------------- Z Metrics -------------------------------
-/*
-	X ANGLE
-	Returns the angle between an x coordinate and origo.
-	
-*/
-function xAngle( x, max ){
-	x = x*max; // INFO: Spread a thinner angle over a larger area. When max is 0.5 and x is 10, x will be given as 10*0.7 = 0.7
-	x = (2*x)/sciMonk.Width;
-	return Math.acos(x);
-}
-
-/*
-	Y ANGLE
-	Returns the angle between an y coordinate and origo.
-	
-*/
-function yAngle (y, max){
-	y = y*max; // Spread a thinner angle over a larger area.
-	y = (2*y)/sciMonk.Height;
-	return Math.asin(y);
-}
-
-/*
-	X PERSPECTIVE
-	Gives a point on the x axis relative to the depth in z  
-	
-*/
-function zRx(x,z){
-	
-	z = z + sciMonk.Depth/2;  	
-	x = x + sciMonk.Width/2;       
-	return xOnCanvas(
-			x + ((sciMonk.Depth-z)*(sciMonk.Depth/(z)))*Math.cos(xAngle(xGraph(x),0.5))
-		);
-}
-
-/*
-	Y PERSPECTIVE
-	Gives a point on the y axis relative to the depth in z  
-
-*/
-function zRy(y,z){
-	
-	z = z + sciMonk.Depth/2; 	
-	y = y + sciMonk.Height/2;	
-	return yOnCanvas(
-			y + ((sciMonk.Depth-z)*(sciMonk.Depth/(z)))*Math.sin(yAngle(yGraph(y),0.5))
-		);
-} 
-
 // ---------------------------- Angle metrics -----------------------------------
 
 /*
@@ -134,115 +32,11 @@ function vectorAngle( u, v){
 	return v;
 }
 
-// ------------------------------ Vectors ------------------------------
-
-/*
-	NODE VECTOR
-	
-*/
-function nodeVector(node1, node2, colour, alpha){
-	
-	var uv = uToV(node1,node2);
-	if(vLen(uv)>25){
-		nodeVector(node1,addV(node1,Vx(uv,0.5)),colour, alpha);
-		nodeVector(addV(node1,Vx(uv,0.5)),node2,colour, alpha);
-	}else{
-		//colour[3] = 250;
-		if(!colour){
-			colour = [10,10,10,250];
-		}
-		if(alpha){
-			//colour[3]=setLineAlpha(node1, node2);
-			colour[3] = 250;
-		}
-		var as = node(node1,sciMonk.xRzRot,sciMonk.yRzRot,sciMonk.xRyRot);
-		var bs = node(node2,sciMonk.xRzRot,sciMonk.yRzRot,sciMonk.xRyRot);
-		drawLine(as[0],bs[0],as[1],bs[1],as[2],bs[2],colour);
-	}
-}
-
-/*
-	NODE
-	computes the position of a node
-
-*/
-function node(cords,xRzR,yRzR,xRyR){
-	var xyz=addV(rotateNode(cords,[xRzR,yRzR,xRyR],[0,0,0]),
-				[sciMonk.xMove,sciMonk.yMove,sciMonk.zMove]);
-	return [zRx(xyz[0],xyz[2])|0, 
-			zRy(xyz[1],xyz[2])|0,
-			xyz[2]];
-}
-
-/*
-	NODES
-
-*/
-function multipleNopdes(nodes){
-	var i =0;
-	var newNodes = new Array();
-	for(i=0;i<nodes.length;i++){
-		newNodes[i] = node(nodes[i], sciMonk.xRzRot,sciMonk.yRzRot,sciMonk.xRyRot);
-	}
-	return newNodes;
-}
-
-/*
-	UNTRANSFORMED NODE
-	Returns a rotated and translated node 
-	without transforming it
-
-*/
-function uNode(cord){
-	return addV(rotateNode(cord,[sciMonk.xRzRot,sciMonk.yRzRot,sciMonk.xRyRot],[0,0,0]),
-				[sciMonk.xMove,sciMonk.yMove,sciMonk.zMove]);
-}
-
-function uPlane(plane){
-	var i = 0;
-	var uPlane = new Array();
-	for(i=0;i<plane.length;i++){
-		uPlane[i] = uNode(plane[i]);
-	}
-	return uPlane;
-}
-
-/*
-	C NODE
-	Returns a regular node.
-
-*/
-function cNode(cords){
-	return node(cords[0],cords[1],cords[2],
-	sciMonk.xRzRot,sciMonk.yRzRot,sciMonk.xRyRot)
-}
-
-
-/*
-	ROTATION
-*/
-function rotateNodeT(node,origo,matrix){
-	return addV(origo,Ab(matrix,uToV(origo,node)));
-}
-
-function XZrot(a){
-	return [[Math.cos(a),0,-Math.sin(a)],[0,1,0],[Math.sin(a),0,Math.cos(a)]];
-}
-
-function YZrot(a){
-	return [[1,0,0],[0,Math.cos(a),Math.sin(a)],[0,-Math.sin(a),Math.cos(a)]];
-}
-
-function XYrot(a){
-	return [[Math.cos(a),Math.sin(a),0],[-Math.sin(a),Math.cos(a),0],[0,0,1]];
-}
-
 
 /*
 	-------------------- MATH UTILITIES ------------------------
 
 */
-
 
 
 /*
@@ -279,8 +73,7 @@ function uToV(u,v){
 */
 function addV(u,v){
 	var w = new Array();
-	var i=0;
-	for(i=0;i<u.length;i++){
+	for(let i=0;i<u.length;i++){
 		w[i] = u[i]+v[i];
 	}
 	return w;
@@ -589,4 +382,36 @@ function unitVector(p1, p2) {
   v[1] = v[1]/length;
   v[2] = v[2]/length;
   return v;
+}
+
+
+/**
+ * Middle point of vector u -> v / 2
+ * @param {start vector} u
+ * @param {end vector} v 
+ * @returns the middle point u -> v/2
+ */
+function middle(u, v){
+    var uv = unitVector(u, v);
+    var len = vDist(u, v);
+    return addV(u , Vx(uv, len/2));
+}
+
+/**
+ * returns if the number is negative ot positive (the sign)
+ * @param {signed number} n 
+ * @returns positive (1) or negative (-1) 
+ */
+function sign(n) {
+  if(n < 0){
+    return -1;
+  }
+  return 1;
+}
+
+function randomSigned(){
+  if(Math.random() > 0.49){
+    return -Math.random();
+  }
+  return Math.random();
 }

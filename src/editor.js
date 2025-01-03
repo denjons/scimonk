@@ -25,14 +25,7 @@ sciMonk.currentNr = 0;
 sciMonk.currentStruct = new Array();
 sciMonk.currentStructNr = 0;
 
-sciMonk.currentModel = new Object();
-sciMonk.currentModel.shapes = new Array();
-sciMonk.currentModel.name="no title";
-sciMonk.currentModel.user="Anonymous";
-sciMonk.currentModel.modelId = 0;
-sciMonk.currentModel.nr = 0;
-
-sciMonk.currentModelList = new Array();
+sciMonk.modelList = new Array();
 sciMonk.currentItemList = new Array();
 
 sciMonk.currentColour = [1,1,1,250];
@@ -65,13 +58,13 @@ sciMonk.currentShape.originalShape = new Array();
 sciMonk.currentShape.scaledShape = new Array();
 
 // All shape objects needs to have the properties shape and colour.
-sciMonk.currentShape.shape = new Array();  
+sciMonk.currentShape.triangles = new Array();  
 sciMonk.currentShape.colour = [1,1,1,250];
    
 sciMonk.currentShape.type = "node";                    
 sciMonk.currentShape.size = [sciMonk.initialSize,sciMonk.initialSize,sciMonk.initialSize];
-sciMonk.currentShape.rot = [0,0,0];
-sciMonk.currentShape.pos = [0,0,0];
+sciMonk.currentShape.rotation = [0,0,0];
+sciMonk.currentShape.position = [0,0,0];
 sciMonk.currentShape.scale = [1,1,1];
 
 sciMonk.currentShape.res = [sciMonk.initialRes,sciMonk.initialRes];
@@ -250,7 +243,7 @@ function iniEditor(canvas,prompt,shapeControl){
 */
 
 function saveModelCheck(){
-	if(sciMonk.currentModel.modelId > 0)
+	if(sciMonk.model.modelId > 0)
 		optionPane("Do you want to change the current model?", "saveModel(this.parentNode)");
 	else
 		inflateSaveOptionsView();
@@ -324,7 +317,7 @@ function inflateLoadModelsView(){
 
 function inflateEditShapeView(index){
 	if(!(sciMonk.viewLock)){
-		var shape = sciMonk.currentModel.shapes[index];
+		var shape = sciMonk.model.geometries[index];
 		var div = document.createElement("div");
 		div.id = "editShapeView";
 		makeClosable(div);
@@ -343,13 +336,13 @@ function inflateEditShapeView(index){
 				this.value = "";
 			}
 			if(valid){
-				shape.shapeType = val;
+				shape.type = val;
 				updateShapeList();
 			}
 		}
 		tagInput.type = "text";
 		tagInput.maxlength = 25;
-		tagInput.value = shape.shapeType;
+		tagInput.value = shape.type;
 		tagDiv.appendChild(tagInput);
 		div.appendChild(tagDiv);
 		// shape colour
@@ -491,16 +484,16 @@ function inflateSaveOptionsView(id){
 
 function setModelName(val){
 	if(!val)
-		sciMonk.currentModel.name = "no title";
+		sciMonk.model.name = "no title";
 	else
-		sciMonk.currentModel.name = val;
+		sciMonk.model.name = val;
 }
 
 function setModelCreator(val){
 	if(!val)
-		sciMonk.currentModel.user = "Anonymous";
+		sciMonk.model.user = "Anonymous";
 	else
-		sciMonk.currentModel.user = val;
+		sciMonk.model.user = val;
 }
 
 
@@ -542,15 +535,15 @@ function updateShapeList(){
 	var list = document.getElementById("shapeList");
 	list.innerHTML = "";
 	var i =0;
-	for(i=0;i<sciMonk.currentModel.shapes.length;i++){                                     /* <--- construction*/
+	for(i=0;i<sciMonk.model.geometries.length;i++){                                     /* <--- construction*/
 		var item = document.createElement("div");
 		item.setAttribute("onClick","inflateEditShapeView("+i+")");
 		item.setAttribute("onMouseOver","showMarker("+i+")");
 		item.setAttribute("onMouseOut","hideMarker("+i+")");
-		var c = sciMonk.currentModel.shapes[i].colour;
+		var c = sciMonk.model.geometries[i].colour;
 		item.style.background = rgbToHex(c[0],c[1],c[2]);
 		item.id = "shapeItem";
-		item.innerHTML = "<p>&lt;"+sciMonk.currentModel.shapes[i].shapeType+"&gt;</p>";
+		item.innerHTML = "<p>&lt;"+sciMonk.model.geometries[i].type+"&gt;</p>";
 		list.appendChild(item);
 	}
 }
@@ -561,33 +554,33 @@ function updateShapeList(){
 function refactorShape(id){
 	sciMonk.viewStack.pop();
 	sciMonk.placementType = "shape";
-	sciMonk.currentShape.shape = sciMonk.currentModel.shapes[id].shape;
-	sciMonk.currentShape.scaledShape = sciMonk.currentModel.shapes[id].shape;
-	sciMonk.currentShape.originalShape = sciMonk.currentModel.shapes[id].shape;
-	sciMonk.currentShape.type = sciMonk.currentModel.shapes[id].shapeType;
-	sciMonk.currentShape.pos = sciMonk.currentModel.shapes[id].pos;
-	sciMonk.clientZ = sciMonk.currentModel.shapes[id].pos[2]; 
-	sciMonk.currentShape.scale = sciMonk.currentModel.shapes[id].scale;
-	sciMonk.currentShape.rot = sciMonk.currentModel.shapes[id].rot;
-	var color = sciMonk.currentModel.shapes[id].colour;
+	sciMonk.currentShape.triangles = sciMonk.model.geometries[id].triangles;
+	sciMonk.currentShape.scaledShape = sciMonk.model.geometries[id].triangles;
+	sciMonk.currentShape.originalShape = sciMonk.model.geometries[id].triangles;
+	sciMonk.currentShape.type = sciMonk.model.geometries[id].type;
+	sciMonk.currentShape.position = sciMonk.model.geometries[id].pos;
+	sciMonk.clientZ = sciMonk.model.geometries[id].pos[2]; 
+	sciMonk.currentShape.scale = sciMonk.model.geometries[id].scale;
+	sciMonk.currentShape.rotation = sciMonk.model.geometries[id].rot;
+	var color = sciMonk.model.geometries[id].colour;
 	sciMonk.currentShape.colour = color;
 	document.getElementById('colourPicker').value = "#"+decToHex(color[0])+decToHex(color[1])+decToHex(color[2]);
-	sciMonk.currentModel.shapes = removeElement(sciMonk.currentModel.shapes,id);
+	sciMonk.model.geometries = removeElement(sciMonk.model.geometries,id);
 		
 	updateShapeList();
 	sciMonk.update=true;
-	sciMonk.currentModel.nr--;
+	sciMonk.model.nr--;
 	
 	var i =0;
-	for(i=0;i<sciMonk.currentModel.shapes.length;i++){
-		sciMonk.currentModel.shapes.shapeId = i;
+	for(i=0;i<sciMonk.model.geometries.length;i++){
+		sciMonk.model.geometries.shapeId = i;
 	}
 }
 
 function showMarker(id){
-	//parseHexColour(sciMonk.currentModel.shapes[id].colour,"bde8ff");
+	//parseHexColour(sciMonk.model.geometries[id].colour,"bde8ff");
 	sciMonk.marker.show = true;
-	sciMonk.marker.shape = scaleShape(sciMonk.currentModel.shapes[id].shape,[1.01,1.01,1.01]);
+	sciMonk.marker.shape = scaleShape(sciMonk.model.geometries[id].triangles,[1.01,1.01,1.01]);
 	sciMonk.update=true;
 }
 
@@ -601,9 +594,9 @@ function refactorColor(id){
 }
 
 function updateShapePos(){
-	var origo = getShapeOrigo(sciMonk.currentShape.shape);
-	var path = uToV(origo,[sciMonk.currentShape.pos[0],sciMonk.currentShape.pos[1],sciMonk.currentShape.pos[2]]);
-	sciMonk.currentShape.shape = translateShape(sciMonk.currentShape.shape,path);
+	var origo = getShapeOrigo(sciMonk.currentShape.triangles);
+	var path = uToV(origo,[sciMonk.currentShape.position[0],sciMonk.currentShape.position[1],sciMonk.currentShape.position[2]]);
+	sciMonk.currentShape.triangles = translateShape(sciMonk.currentShape.triangles,path);
 }
 
 function pickShape(elm){
@@ -640,7 +633,7 @@ function pickShape(elm){
 }
 
 function resetShapeProperties(){
-	sciMonk.currentShape.rot = [0,0,0];
+	sciMonk.currentShape.rotation = [0,0,0];
 	sciMonk.currentShape.scale= [1,1,1];
 	sciMonk.currentShape.res[0] = sciMonk.initialRes;
 	sciMonk.currentShape.res[1] = sciMonk.initialRes;
@@ -690,10 +683,10 @@ function setColour(elm){
 
 function createShape(type){
 	//resetShapeProperties();
-	sciMonk.currentShape.originalShape = getShape(type,sciMonk.currentShape.pos,
+	sciMonk.currentShape.originalShape = getShape(type,sciMonk.currentShape.position,
 		sciMonk.currentShape.size,sciMonk.currentShape.res[0],sciMonk.currentShape.res[1]);
 	sciMonk.currentShape.scaledShape = copyArray(sciMonk.currentShape.originalShape);
-	sciMonk.currentShape.shape = copyArray(sciMonk.currentShape.originalShape);
+	sciMonk.currentShape.triangles = copyArray(sciMonk.currentShape.originalShape);
 	rotateShape();
 }
 
@@ -720,13 +713,13 @@ function getShape(type,pos,size,rings,lines){
 function addObject(){
 	if(sciMonk.placementType == "node"){
 		if(sciMonk.vectorType == "line" || sciMonk.currentCords.length == 0 ){
-			sciMonk.currentCords[sciMonk.currentNr]=[sciMonk.currentShape.pos[0],sciMonk.currentShape.pos[1],sciMonk.currentShape.pos[2]];
+			sciMonk.currentCords[sciMonk.currentNr]=[sciMonk.currentShape.position[0],sciMonk.currentShape.position[1],sciMonk.currentShape.position[2]];
 			sciMonk.currentNr++;
 		}
 		
 	}else if(sciMonk.placementType == "shape"){
 		addStruct();
-		sciMonk.currentStruct=copyArray(sciMonk.currentShape.shape);
+		sciMonk.currentStruct=copyArray(sciMonk.currentShape.triangles);
 		sciMonk.currentStructNr = sciMonk.currentStruct.length;
 		addStruct();
 	}
@@ -748,9 +741,9 @@ function removeStruct(){
 }
 
 function removeModel(){
-	if(sciMonk.currentModel.nr>0){
-		sciMonk.currentModel.shapes = removeElement(sciMonk.currentModel.shapes,sciMonk.currentModel.nr-1);;
-		sciMonk.currentModel.nr--;
+	if(sciMonk.model.nr>0){
+		sciMonk.model.geometries = removeElement(sciMonk.model.geometries,sciMonk.model.nr-1);;
+		sciMonk.model.nr--;
 	}
 	updateShapeList();
 }
@@ -764,7 +757,7 @@ function undo(){
 	}else if(sciMonk.currentStructNr>0){
 		removeStruct();
 	}
-	else if(sciMonk.currentModel.nr>0){
+	else if(sciMonk.model.nr>0){
 		removeModel()
 	}
 	sciMonk.update = true;
@@ -796,11 +789,11 @@ function addStruct(){										        /* WHERE SHEOAS ARE ADDED UNDER CONSTRUCT
 	if(sciMonk.currentCords.length >= 1)
 		addNodes();
 	if(sciMonk.currentStruct.length >= 1){
-    addShapeToModel(sciMonk.currentStruct, 
+    sciMonk.addGeometry(sciMonk.currentStruct, 
       sciMonk.currentShape.type, 
       sciMonk.currentShape.colour, 
       sciMonk.currentShape.scale, 
-      sciMonk.currentShape.rot);
+      sciMonk.currentShape.rotation);
       
 		clearStruct();
 		sciMonk.update = true;
@@ -808,19 +801,7 @@ function addStruct(){										        /* WHERE SHEOAS ARE ADDED UNDER CONSTRUCT
 	updateShapeList();
 }
  
-function addShapeToModel(shape, type, colour, scale, rotation) {
-    var origo = getShapeOrigo(shape);
-		sciMonk.currentModel.shapes[sciMonk.currentModel.nr] = {
-			"scale" : scale,
-			"pos" : origo,
-			"rot" : rotation,
-			"colour" : copyArray(colour),
-			"shapeId" : sciMonk.currentModel.nr,
-			"shapeType" : type, 
-			"shape" : copyArray(shape)
-		}
-		sciMonk.currentModel.nr++;
-}
+
 
 /*
 	PIPE
@@ -858,8 +839,8 @@ function updateCoordbox(){
 	sciMonk.coordBox.style.marginLeft = (sciMonk.clientX+sciMonk.xMargin+20)+"px";
 	sciMonk.coordBox.style.marginTop = (sciMonk.clientY+sciMonk.yMargin+20)+"px";
 	sciMonk.coordBox.innerHTML = 
-	"("+(xToGraph(sciMonk.clientX)-sciMonk.xMove|0)+", "+
-	(yToGraph(sciMonk.clientY)-sciMonk.yMove|0)+", "+
+	"("+(sciMonk.xToGraph(sciMonk.clientX)-sciMonk.xMove|0)+", "+
+	(sciMonk.yToGraph(sciMonk.clientY)-sciMonk.yMove|0)+", "+
 	(sciMonk.clientZ+sciMonk.zMove|0)+")";
 }
 function keyPressed(evt){
@@ -965,8 +946,8 @@ function keyEvent(){                                                           /
 					
 					//updateShape();
 			}else{
-				//sciMonk.currentShape.rot[0] += Math.PI/100;
-				sciMonk.currentShape.rot[0] = (sciMonk.currentShape.rot[0] + Math.PI/100)%(2*Math.PI);
+				//sciMonk.currentShape.rotation[0] += Math.PI/100;
+				sciMonk.currentShape.rotation[0] = (sciMonk.currentShape.rotation[0] + Math.PI/100)%(2*Math.PI);
 				rotateShape();
 			}
 		break;
@@ -984,7 +965,7 @@ function keyEvent(){                                                           /
 			}else{
 				if((sciMonk.clientZ + sciMonk.zMove) < sciMonk.moveMax){
 					sciMonk.clientZ += 1;
-					sciMonk.currentShape.pos[2] += 1;
+					sciMonk.currentShape.position[2] += 1;
 				}
 			}
 			
@@ -997,7 +978,7 @@ function keyEvent(){                                                           /
 					rotateShape();
 				}
 			}else{
-				sciMonk.currentShape.rot[0] = (sciMonk.currentShape.rot[0] - Math.PI/100)%(2*Math.PI);
+				sciMonk.currentShape.rotation[0] = (sciMonk.currentShape.rotation[0] - Math.PI/100)%(2*Math.PI);
 				rotateShape();
 			}
 		break;
@@ -1009,7 +990,7 @@ function keyEvent(){                                                           /
 					rotateShape();
 				}
 			}else{
-				sciMonk.currentShape.rot[2] = (sciMonk.currentShape.rot[2] - Math.PI/100)%(2*Math.PI);
+				sciMonk.currentShape.rotation[2] = (sciMonk.currentShape.rotation[2] - Math.PI/100)%(2*Math.PI);
 				rotateShape();
 			}
 		break;
@@ -1018,10 +999,10 @@ function keyEvent(){                                                           /
 				if(sciMonk.currentShape.res[0] > sciMonk.minRes ){
 					sciMonk.currentShape.res[0] -= 1;
 					sciMonk.currentShape.res[1] -= 1;
-					sciMonk.currentShape.originalShape = getShape(sciMonk.currentShape.type,sciMonk.currentShape.pos,
+					sciMonk.currentShape.originalShape = getShape(sciMonk.currentShape.type,sciMonk.currentShape.position,
 					sciMonk.currentShape.size,sciMonk.currentShape.res[0],sciMonk.currentShape.res[1]);
 					sciMonk.currentShape.scaledShape = scaleShape(sciMonk.currentShape.originalShape,sciMonk.currentShape.scale);
-					//sciMonk.currentShape.shape = copyArray(sciMonk.currentShape.originalShape);
+					//sciMonk.currentShape.triangles = copyArray(sciMonk.currentShape.originalShape);
 					rotateShape();
 				}
 			}
@@ -1034,7 +1015,7 @@ function keyEvent(){                                                           /
 					rotateShape();
 				}
 			}else{
-				sciMonk.currentShape.rot[2] = (sciMonk.currentShape.rot[2] + Math.PI/100)%(2*Math.PI);
+				sciMonk.currentShape.rotation[2] = (sciMonk.currentShape.rotation[2] + Math.PI/100)%(2*Math.PI);
 				rotateShape();
 			}
 		break;
@@ -1044,10 +1025,10 @@ function keyEvent(){                                                           /
 				if(sciMonk.currentShape.res[0] < sciMonk.maxRes ){
 					sciMonk.currentShape.res[0] += 1;
 					sciMonk.currentShape.res[1] += 1;
-					sciMonk.currentShape.originalShape = getShape(sciMonk.currentShape.type,sciMonk.currentShape.pos,
+					sciMonk.currentShape.originalShape = getShape(sciMonk.currentShape.type,sciMonk.currentShape.position,
 					sciMonk.currentShape.size,sciMonk.currentShape.res[0],sciMonk.currentShape.res[1]);
 					sciMonk.currentShape.scaledShape = scaleShape(sciMonk.currentShape.originalShape,sciMonk.currentShape.scale);
-					//sciMonk.currentShape.shape = copyArray(sciMonk.currentShape.originalShape);
+					//sciMonk.currentShape.triangles = copyArray(sciMonk.currentShape.originalShape);
 					rotateShape();
 				}
 			}	
@@ -1060,7 +1041,7 @@ function keyEvent(){                                                           /
 						rotateShape();
 					}
 			}else{
-				sciMonk.currentShape.rot[1] = (sciMonk.currentShape.rot[1] + Math.PI/100)%(2*Math.PI);
+				sciMonk.currentShape.rotation[1] = (sciMonk.currentShape.rotation[1] + Math.PI/100)%(2*Math.PI);
 				rotateShape();
 			}
 		break;
@@ -1072,7 +1053,7 @@ function keyEvent(){                                                           /
 					rotateShape();
 				}
 			}else{
-				sciMonk.currentShape.rot[1] = (sciMonk.currentShape.rot[1]-Math.PI/100)%(2*Math.PI);
+				sciMonk.currentShape.rotation[1] = (sciMonk.currentShape.rotation[1]-Math.PI/100)%(2*Math.PI);
 				rotateShape();
 			}
 		break;
@@ -1082,9 +1063,9 @@ function keyEvent(){                                                           /
 				sciMonk.currentShape.scaledShape = sciMonk.currentShape.originalShape;
 				rotateShape();
 			}else{
-				sciMonk.currentShape.rot = [0,0,0];
+				sciMonk.currentShape.rotation = [0,0,0];
 				sciMonk.clientZ = 0;
-				sciMonk.currentShape.pos[2] = 0;
+				sciMonk.currentShape.position[2] = 0;
 				rotateShape();
 			}
 		break;
@@ -1105,7 +1086,7 @@ function keyEvent(){                                                           /
 			}else{
 				if((sciMonk.clientZ + sciMonk.zMove) > (-sciMonk.moveMax)){
 					sciMonk.clientZ -=1;
-					sciMonk.currentShape.pos[2] -=1;
+					sciMonk.currentShape.position[2] -=1;
 				}
 			}
 			
@@ -1123,9 +1104,9 @@ function keyEvent(){                                                           /
 
 */
 function rotateShape(){
-	sciMonk.currentShape.shape = 
-		rotate(sciMonk.currentShape.pos,sciMonk.currentShape.scaledShape,sciMonk.currentShape.rot);
-		//rotate(getShapeOrigo(sciMonk.currentShape.scaledShape),sciMonk.currentShape.scaledShape,sciMonk.currentShape.rot);
+	sciMonk.currentShape.triangles = 
+		rotate(sciMonk.currentShape.position,sciMonk.currentShape.scaledShape,sciMonk.currentShape.rotation);
+		//rotate(getShapeOrigo(sciMonk.currentShape.scaledShape),sciMonk.currentShape.scaledShape,sciMonk.currentShape.rotation);
 }
 
 
@@ -1164,9 +1145,9 @@ function updateGraph(){
 }
 
 function updatePos(){
-	sciMonk.currentShape.pos[0] =xToGraph(sciMonk.currentX)-sciMonk.xMove|0;
-	sciMonk.currentShape.pos[1] =yToGraph(sciMonk.currentY)-sciMonk.yMove|0;
-	sciMonk.currentShape.pos[2] = sciMonk.clientZ;
+	sciMonk.currentShape.position[0] = sciMonk.xToGraph(sciMonk.currentX)-sciMonk.xMove|0;
+	sciMonk.currentShape.position[1] = sciMonk.yToGraph(sciMonk.currentY)-sciMonk.yMove|0;
+	sciMonk.currentShape.position[2] = sciMonk.clientZ;
 }
 
 /**
@@ -1239,30 +1220,30 @@ function drawEditor(){
 	if(sciMonk.placementType == "node"){
 		if(sciMonk.crossHair){
 			
-			sciMonk.nodeCross([sciMonk.currentShape.pos[0],sciMonk.currentShape.pos[1],0],2.5,[100,100,250,250]);
-			sciMonk.nodeCross(sciMonk.currentShape.pos,2.5,[180,150,150,250]);
-			nodeVector([sciMonk.currentShape.pos[0],sciMonk.currentShape.pos[1],0],
-			[sciMonk.currentShape.pos[0],sciMonk.currentShape.pos[1],sciMonk.currentShape.pos[2]],[250,100,100,250],false);
+			sciMonk.nodeCross([sciMonk.currentShape.position[0],sciMonk.currentShape.position[1],0],2.5,[100,100,250,250]);
+			sciMonk.nodeCross(sciMonk.currentShape.position,2.5,[180,150,150,250]);
+			sciMonk.nodeVector([sciMonk.currentShape.position[0],sciMonk.currentShape.position[1],0],
+			[sciMonk.currentShape.position[0],sciMonk.currentShape.position[1],sciMonk.currentShape.position[2]],[250,100,100,250],false);
 		}
 	}
 	else{
 		updateShapePos();
 		if(sciMonk.lineModel){
-			sciMonk.lineMapObject(sciMonk.currentShape,false);
+			lineMapObject(sciMonk.currentShape,false);
 		}else if(sciMonk.fillModel)
-			sciMonk.colourMapShape(sciMonk.currentShape);
+			colourMapShape(sciMonk.currentShape);
 		else if(sciMonk.nodeModel)
 			sciMonk.nodeMap(sciMonk.currentShape);
 		else
 			alert("No shape Selected.");
 	}
 	if(sciMonk.shapeSelecter.shapes.length>0)
-		sciMonk.lineMapObject(sciMonk.shapeSelecter);
+		lineMapObject(sciMonk.shapeSelecter);
 		
 	drawModel();
 	
 	if(sciMonk.marker.show)
-		sciMonk.lineMap(sciMonk.marker.shape,sciMonk.marker.colour);
+		lineMap(sciMonk.marker.shape,sciMonk.marker.colour);
 }
 
 function drawModel(){
@@ -1274,28 +1255,28 @@ function drawModel(){
 	}
 	if(sciMonk.lineModel){
 		if(sciMonk.currentStruct.length >= 1 && sciMonk.currentCords.length >= 1 ){
-			sciMonk.lineMap(concatArray(sciMonk.currentStruct,[sciMonk.currentCords]),sciMonk.currentShape.colour);
+			lineMap(concatArray(sciMonk.currentStruct,[sciMonk.currentCords]),sciMonk.currentShape.colour);
 		}
 		else if(sciMonk.currentStruct.length >= 1){
-			sciMonk.lineMap(sciMonk.currentStruct,sciMonk.currentShape.colour);
+			lineMap(sciMonk.currentStruct,sciMonk.currentShape.colour);
 		}
 		else if(sciMonk.currentCords.length > 1 ){
-			sciMonk.lineMap([sciMonk.currentCords],sciMonk.currentShape.colour);
+			lineMap([sciMonk.currentCords],sciMonk.currentShape.colour);
 		}
 	}
 	
 	if(sciMonk.fillModel && sciMonk.currentStruct.length >= 1){
-		sciMonk.colourMap(sciMonk.currentStruct,sciMonk.currentShape.colour);
+		sciMonk.fill(sciMonk.currentStruct,sciMonk.currentShape.colour);
 	}
 	
-	if(sciMonk.currentModel.shapes.length >= 1){
+	if(sciMonk.model.geometries.length >= 1){
 		if(sciMonk.fillModel)
-			sciMonk.batchColourMapShapes(sciMonk.currentModel.shapes);//,sciMonk.ModelColours,true,true);
+			batchColourMapShapes(sciMonk.model.geometries);//,sciMonk.ModelColours,true,true);
 			//var gg = 0;
-			//for(gg=0;gg<sciMonk.currentModel.length;gg++)
-			//alert(sciMonk.currentModel[gg].id);
+			//for(gg=0;gg<sciMonk.model.length;gg++)
+			//alert(sciMonk.model[gg].id);
 		if(sciMonk.lineModel){
-			sciMonk.batchLineMapObjects(sciMonk.currentModel.shapes,false);
+			batchLineMapObjects(sciMonk.model.geometries,false);
 
 		}
 	}
@@ -1705,56 +1686,23 @@ function dragOverEventHandler(event){
   event.preventDefault();
 }
 
-function parseSTL(arrayBuffer){
-  // Header (80 bytes) and number of triangles (4 bytes) 0 - 83
-  // Each triangle is 50 bytes unit vector (12 bytes), 3 points (12 bytes), and attribute count (2 bytes)
-  const result = new Array();
-  for(var i = 84; i < arrayBuffer.byteLength; i += 50) {
-    var points = new Float32Array(arrayBuffer.slice(i, i+48));
-    result.push([[points[3],points[4],points[5]], [points[6],points[7],points[8]], [points[9],points[10],points[11]]]);
-  }
-  addShapeToModel(result, "imported_stl", [1,1,1,255], [1,1,1], [1,1,1]);
+function parseSTL(arrayBuffer) {
+  const geometry = sciMonk.parseSTL(arrayBuffer);
+  sciMonk.add(geometry);
   updateShapeList();
 }
 
+function generateStlFile(){
+  console.log("clicked");
+  modelToSTL();
+}
+
 function modelToSTL(){
-  console.log(sciMonk.currentModel.shapes);
-  var triangles = new Array();
-  for(model of sciMonk.currentModel.shapes) {
-    triangles = triangles.concat(model.shape);
-  }
-
-  const count = triangles.length;
-
-  console.log(count);
-  const bufferLength = 84 + count*50;
-  const buffer = new ArrayBuffer(bufferLength);
-  const dataView = new DataView(buffer);
-  var j = 0;
-  dataView.setUint32(80, count, true); // UINT32       – Number of triangles    -      4 bytes
-  for(var i = 84; i < buffer.byteLength; i+= 50){
-    var shape = triangles[j];
-    // REAL32[3] – Normal vector - 12 bytes
-    dataView.setFloat32(i, 0, true);
-    dataView.setFloat32(i + 4, 0, true);
-    dataView.setFloat32(i + 8, 0, true);
-    // triangles
-    dataView.setFloat32(i + 12, shape[0][0], true);
-    dataView.setFloat32(i + 16, shape[0][1], true);
-    dataView.setFloat32(i + 20, shape[0][2], true);
-    dataView.setFloat32(i + 24, shape[1][0], true);
-    dataView.setFloat32(i + 28, shape[1][1], true);
-    dataView.setFloat32(i + 32, shape[1][2], true);
-    dataView.setFloat32(i + 36, shape[2][0], true);
-    dataView.setFloat32(i + 40, shape[2][1], true);
-    dataView.setFloat32(i + 44, shape[2][2], true);
-    j++;
-  }
-
+  const buffer = sciMonk.writeSTL();
   var file = new Blob([buffer], {type: "application/octet-binary;charset=utf-8"});
   var a = document.createElement("a"), url = URL.createObjectURL(file);
   a.href = URL.createObjectURL( file );;
-  a.download = sciMonk.currentModel.name +".stl";
+  a.download = "test.stl";
   document.body.appendChild(a);
   a.click();
 

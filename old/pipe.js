@@ -142,9 +142,9 @@ function pipe3(u,v,w,r,s){
 	var N = [n2,n1,n3];
 	
 	// VISUAL COMMENT
-	//sciMonk.nodeVector(u,addV(u,Vx(n1,w)));
-	//sciMonk.nodeVector(u,addV(u,Vx(n2,w)));
-	//sciMonk.nodeVector(u,addV(u,Vx(n3,w)));
+	//nodeVector(u,addV(u,Vx(n1,w)));
+	//nodeVector(u,addV(u,Vx(n2,w)));
+	//nodeVector(u,addV(u,Vx(n3,w)));
 	// VISUAL COMMENT
 	
 	

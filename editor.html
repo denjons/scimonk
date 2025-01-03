@@ -28,10 +28,11 @@
     />
 
     <!-- 3d -->
+    <script type="text/javascript" src="./src/geometry.js"></script>
     <script type="text/javascript" src="./src/main3D.js"></script>
     <script type="text/javascript" src="./src/graph.js"></script>
     <script type="text/javascript" src="./src/utils.js"></script>
-     <script type="text/javascript" src="./src/pipe.js"></script>
+    <script type="text/javascript" src="./src/ai-generated.js"></script>
 
     <!--editor-->
     <script type="text/javascript" src="./src/editor.js"></script>
@@ -54,7 +55,7 @@
               <td>
               </td>
               <td>
-                <button id="save" style="background: #71f6af">
+                <button id="save" onclick="generateStlFile()" style="background: #71f6af">
                   save model
                 </button>
               </td>
@@ -308,13 +309,20 @@
       </div>
     </div>
     <script type="text/javascript" id="editorScript">
+      
+      /*
       iniGUI();
-      sciMonk.init(document.getElementById("canvas"));
+     
       iniEditor(
         document.getElementById("canvasDiv"),
         document.getElementById("message"),
         document.getElementById("shapesControl")
       );
+      */
+
+      sciMonk.init(document.getElementById("canvas"));
+
+      /*
       sciMonk.moveMax = 1000;
 
       sciMonk.reset = function () {
@@ -325,34 +333,35 @@
         sciMonk.xRzRot = 0;
         sciMonk.xRyRot = 0;
       };
+      */
 
 
       /*
       var inside1 = insides.insidesCollection[0]();
       for(var i = 0; i < inside1.shapes.length; i ++){
-        addShapeToModel(inside1.shapes[i], "insides "+i, [1,1,1,255], [1,1,1], [1,1,1]);
+        addGeometry(inside1.shapes[i], "insides "+i, [1,1,1,255], [1,1,1], [1,1,1]);
       }
       */
      
 
       //var pipe1 = pipe([0,0,0],[100,-100,0],10,10,10);
-      //addShapeToModel(pipe1, "pipe", [1,1,1,255], [1,1,1], [1,1,1]);
+      //addGeometry(pipe1, "pipe", [1,1,1,255], [1,1,1], [1,1,1]);
 
       //var pipe3 = pipe3([0,0,0],[-100,100,0],20,10,10);
-      //addShapeToModel(pipe3, "pipe3", [1,1,1,255], [1,1,1], [1,1,1]);
+      //addGeometry(pipe3, "pipe3", [1,1,1,255], [1,1,1], [1,1,1]);
 
 
     
       /*
      var screw1 = screw([0,0,0],[0,100,0], 200, 10, 10, 5, 5, 5, 5, 5, 10);
-     addShapeToModel(screw1, "screw1", [1,1,1,255], [1,1,1], [1,1,1]);
+     addGeometry(screw1, "screw1", [1,1,1,255], [1,1,1], [1,1,1]);
      */
 
      /*
       var cylinder = cylinder([0,0,0], [100,100,100], 10, 10);
       const cylinder2 = sciMonk.crushTriangles(cylinder, 1);
       sciMonk.shakeTriangles(cylinder2, 15);
-      addShapeToModel(cylinder2, "cylinder", [1,1,1,255], [1,1,1], [1,1,1]);
+      addGeometry(cylinder2, "cylinder", [1,1,1,255], [1,1,1], [1,1,1]);
 */
 
 
@@ -362,58 +371,115 @@
       var cube = box([0,0,0], [88,87,92]);
       const cube2 = sciMonk.crushTriangles(cube, 2);
       sciMonk.shakeTriangles(cube2, 20);
-      addShapeToModel(cube, "cube", [1,1,1,255], [1,1,1], [1,1,1]);
+      addGeometry(cube, "cube", [1,1,1,255], [1,1,1], [1,1,1]);
       */
       
-      
+
+      /*
+
+    
+      const box1 = Geometry.box([0,0,0], [50,50,50], [1,1,1,255], 1);
+      box1.crushTriangles(2);
+      box1.shakeTriangles(7);
+      sciMonk.add(box1);
+
+      const cone1 = Geometry.cone([50,0,0], [50,50,50], 10, [1,1,1,255], 2);
+      cone1.crushTriangles(2);
+      cone1.shakeTriangles(7);
+      sciMonk.add(cone1);
+
+      const cylinder1 = Geometry.cylinder([-50,0,0], [50,50,50], 10, [1,1,1,255], 3);
+      cylinder1.crushTriangles(2);
+      cylinder1.shakeTriangles(7);
+      sciMonk.add(cylinder1);
+      */
+
+
+
+
+    /*
+      const brainCell = generateBrainCellStructure([200,200,200], [1,1,1,255], 4);
+      brainCell.translate([-100,-100,0]);
+      sciMonk.add(brainCell);
+      */
+
+      /*
+      const model = generateChristmasTree([200,200,200], [1,1,1,255], 5);
+      model.trunk.translate([-100, -150, 75]);
+      model.star.translate([-100, -35, -105]);
+      model.tree.translate([-100, -100, 0]);
+      model.star.rotate([0, 0, Math.PI/2]);
+      model.tree.rotate([0, Math.PI+Math.PI/2, 0]);
+      model.trunk.rotate([0, Math.PI+Math.PI/2, 0]);
+      sciMonk.add(model.trunk);
+      sciMonk.add(model.star);
+      sciMonk.add(model.tree);
+      */
+
+
+      //brainCell.rotate([0.5, 0.5, 0.5]);
+
+
+
+      /*
+      const sphereX = Geometry.sphere([-50,0,0], [50,50,50], 10, 10, [1,1,1,255], 0);
+      console.log(sphereX);
+      sphereX.crushTriangles(2);
+      sphereX.shakeTriangles(7);
+      sphereX.scale([1.3,1.5,1.5]);
+      sciMonk.add(sphereX);
+      */
+
+      /*
       const sphere1 = sphere([0,0,0], [100,100,100], 10, 10);
       const sphere2 = sciMonk.crushTriangles(sphere1, 2);
       sciMonk.shakeTriangles(sphere2, 2);
-      addShapeToModel(sphere2, "sphere", [1,1,1,255], [1,1,1], [1,1,1]);
-      
+      sciMonk.addGeometry(sphere2, "sphere", [1,1,1,255], [1,1,1], [1,1,1]);
+      */
 
       /*
       var cone = cone([100,0,0], [100,100,100], 10);
       const cone2 = sciMonk.crushTriangles(cone, 1);
       sciMonk.shakeTriangles(cone2, 15);
-      addShapeToModel(cone2, "cone", [1,1,1,255], [1,1,1], [1,1,1]);
+      addGeometry(cone2, "cone", [1,1,1,255], [1,1,1], [1,1,1]);
       */
         /*
       var laser = [[[-100,10,-500],[-100,10,500]]];
-      addShapeToModel(laser, "laser", [1,1,1,255], [1,1,1], [1,1,1]);
+      addGeometry(laser, "laser", [1,1,1,255], [1,1,1], [1,1,1]);
       var beginning = cross(laser[0][0], 20);
-      addShapeToModel(beginning, "Beginning", [200,100,100,255], [1,1,1], [1,1,1]);
+      addGeometry(beginning, "Beginning", [200,100,100,255], [1,1,1], [1,1,1]);
       var intersection =  planeIntersection(laser[0][0], laser[0][1], cube[0]);
       var cross = cross(intersection, 20);
-      addShapeToModel(cross, "cross", [200,100,100,255], [1,1,1], [1,1,1]);
+      addGeometry(cross, "cross", [200,100,100,255], [1,1,1], [1,1,1]);
       var sphere = sphere([0,100,0], [100,100,100], 10, 10);
-      addShapeToModel(sphere, "sphere", [1,1,1,255], [1,1,1], [1,1,1]);
+      addGeometry(sphere, "sphere", [1,1,1,255], [1,1,1], [1,1,1]);
       var cylinder = cylinder([0,-100,0], [100,100,100], 10, 10);
-      addShapeToModel(cylinder, "cylinder", [1,1,1,255], [1,1,1], [1,1,1]);
+      addGeometry(cylinder, "cylinder", [1,1,1,255], [1,1,1], [1,1,1]);
       var cone = cone([100,0,0], [100,100,100], 10);
       //console.log(cone);
-      addShapeToModel(cone, "cone", [1,1,1,255], [1,1,1], [1,1,1]);
+      addGeometry(cone, "cone", [1,1,1,255], [1,1,1], [1,1,1]);
       */
 
       //var cube2 = box(intersection, [10,10,10]);
-      //addShapeToModel(cube2, "cube2", [150,100,50,255], [1,1,1], [1,1,1]);
+      //addGeometry(cube2, "cube2", [150,100,50,255], [1,1,1], [1,1,1]);
       //console.log(intersection);
 
       //(beg, end, width, endWidth, w, endW, d, endD, curves, inter, r, l)
 
-      updateShapeList();
+      //updateShapeList();
 
+      /*
       sciMonk.shadow = true;
       sciMonk.draw = function () {
         if (sciMonk.drawGraph) {
           var i = 0;
           for (i = 0; i < 11; i++) {
-            nodeVector(
+            sciMonk.nodeVector(
               [250 - 50 * i, 0, 250],
               [250 - 50 * i, 0, -250],
               [20, 20, 150, 250]
             );
-            nodeVector(
+            sciMonk.nodeVector(
               [250, 0, 250 - 50 * i],
               [-250, 0, 250 - 50 * i],
               [20, 20, 150, 250]
@@ -426,10 +492,46 @@
         //fill(testCord,[10,10,10,250],1);
         //fillPlane(testCord,[10,10,10,250],1);
       };
+      */
       //sciMonk.zMove = 0;
-      sciMonk.update = true;
 
-      sciMonk.reset();
+      const box1 = Geometry.box([0,0,0], [50,50,50], [1,1,1,255], 1);
+      //box1.crushTriangles(2);
+      //box1.shakeTriangles(7);
+      sciMonk.add(box1);
+
+      const sphere1 = Geometry.sphere([-50,0,0], [20,20,20], 10, 10, [1,1,1,255], 0);
+      sciMonk.add(sphere1);
+      const sphere2 = Geometry.sphere([50,0,0], [20,20,20], 10, 10, [1,1,1,255], 0);
+      sciMonk.add(sphere2);
+      const sphere3 = Geometry.sphere([0,50,0], [20,20,20], 10, 10, [1,1,1,255], 0);
+      sciMonk.add(sphere3);
+      const sphere4 = Geometry.sphere([0,-50,0], [20,20,20], 10, 10, [1,1,1,255], 0);
+      sciMonk.add(sphere4);
+      const sphere5 = Geometry.sphere([0,0,50], [20,20,20], 10, 10, [1,1,1,255], 0);
+      sciMonk.add(sphere5);
+      const sphere6 = Geometry.sphere([0,0,-50], [20,20,20], 10, 10, [1,1,1,255], 0);
+      sciMonk.add(sphere6);
+
+
+      function run(){
+        // brainCell.rotate([0.05, 0.05, 0.05]);
+        //tree.rotate([0.05, 0.00, 0.00]);
+        box1.rotate([0.05, 0.05, 0.05]);
+       // sphereX.rotate([0.05, 0.05, 0.05]);
+        //box1.rotateAround([0.05, 0, 0], [0,0,100]);
+        //box1.scale([1+(randomSigned()*0.05), 1+(randomSigned()*0.05), 1+(randomSigned()*0.05)]);
+        //box1.translate([randomSigned(), randomSigned(), randomSigned()]);
+        sciMonk.rotate([0.05, 0.05, 0.05]);
+        sciMonk.render();
+        var time = setTimeout("run()", 25);
+      }
+
+      run();
+
+      function reset(){
+        sciMonk.reset();
+      }
     </script>
   </body>
 </html>
