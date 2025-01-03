@@ -7,6 +7,32 @@
 
 */
 
+function rightHandTriangle(a, b, c) {
+  let x = Math.max(a[0],Math.max(b[0], c[0]));
+  if(a[0] == x){
+    let y = Math.max(b[1], c[1]);
+    if(b[1] == y) {
+      return [a, b, c];
+    }else{
+      return [a, c, b];
+    }
+  }else if(b[0] == x){
+    let y = Math.max(b[1], c[1]);
+    if(a[1] == y) {
+      return [b, a, c];
+    }else{
+      return [b, c, a];
+    }
+  }else if(c[0] == x){
+    let y = Math.max(b[1], c[1]);
+    if(a[1] == y) {
+      return [c, a, b];
+    }else{
+      return [c, b, a];
+    }
+  }
+}
+
 /*
 	SPHERE
 	
@@ -18,11 +44,11 @@ function sphere(pos,size,sn,sr){
 	for(var i=1;i<sn;i++){ // computes each line
 		for(var j=0;j<sr;j++){ // computes each node on one line
 			if(i==1){
-        sphere.push([top, sphereCoordinate(pos, size, i, j, sn, sr), sphereCoordinate(pos, size, i, (j+1)%sr, sn, sr)])
+        sphere.push(rightHandTriangle(top, sphereCoordinate(pos, size, i, j, sn, sr), sphereCoordinate(pos, size, i, (j+1)%sr, sn, sr)))
         squareToTriangles([sphereCoordinate(pos, size, i, j, sn, sr), sphereCoordinate(pos, size, i, (j+1)%sr, sn, sr),
                           sphereCoordinate(pos, size, i+1, (j+1)%sr, sn, sr), sphereCoordinate(pos, size, i+1, j, sn, sr)], sphere);
       }else if(i==sn-1){
-        sphere.push([bottom, sphereCoordinate(pos, size, i, j, sn, sr), sphereCoordinate(pos, size, i, (j+1)%sr, sn, sr)])
+        sphere.push(rightHandTriangle(bottom, sphereCoordinate(pos, size, i, j, sn, sr), sphereCoordinate(pos, size, i, (j+1)%sr, sn, sr)))
       }else{
         squareToTriangles([sphereCoordinate(pos, size, i, j, sn, sr), sphereCoordinate(pos, size, i, (j+1)%sr, sn, sr),
                           sphereCoordinate(pos, size, i+1, (j+1)%sr, sn, sr), sphereCoordinate(pos, size, i+1, j, sn, sr)], sphere);
@@ -70,8 +96,8 @@ function box2(x, y, z, w, h, d){
 }
 
 function squareToTriangles(square, triangles) {
-  triangles.push([square[0], square[1], square[2]]);
-  triangles.push([square[2], square[3], square[0]]);
+  triangles.push(rightHandTriangle(square[0], square[1], square[2]));
+  triangles.push(rightHandTriangle(square[2], square[3], square[0]));
 } 
 
 /**
@@ -112,7 +138,7 @@ function cone(pos,sc,s){
 	var bottom = xRzCircle(pos, sc[0]/2, sc[2]/2, s)[0];
 	pos[1] = pos[1]+sc[1];
 	for(var i = 0; i < bottom.length; i++) {
-    cone.push([pos, bottom[i], bottom[(i+1)%bottom.length]]);
+    cone.push(rightHandTriangle(pos, bottom[i], bottom[(i+1)%bottom.length]));
   }
 	return cone;
 }

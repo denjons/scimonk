@@ -7,10 +7,7 @@
 
 */
 
-var shapes = new Array()
 var sciMonk = new Object();
-sciMonk.version = "beta_v1_0";
-sciMonk.javascriptSrc = "http://dennisjonsson.com/sciMonk/distributable/sciMonk/scimonk_"+sciMonk.version+".js";
 sciMonk.Depth=1;
 sciMonk.Width=1;
 sciMonk.Height=1;

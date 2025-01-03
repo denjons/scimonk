@@ -185,14 +185,7 @@
 		CONSOLE WINDOW
 	*/
 
-#console{
-	border:5px solid #666666;
-	Background:#666666;
-	text-align:center;
-	color:white;
-	width:800px;
-  float:left;
-}
+
 #message{
 	overflow:scroll;
 	height:150px;
