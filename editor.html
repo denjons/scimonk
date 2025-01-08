@@ -495,13 +495,16 @@
       */
       //sciMonk.zMove = 0;
 
-      const box1 = Geometry.box([0,0,0], [50,50,50], [1,1,1,255], 1);
+     
+      const box1 = Geometry.box([0,0,0], [100,100,100], [1,1,1,255], 1);
       //box1.crushTriangles(2);
       //box1.shakeTriangles(7);
       sciMonk.add(box1);
 
-      const sphere1 = Geometry.sphere([-50,0,0], [20,20,20], 10, 10, [1,1,1,255], 0);
-      sciMonk.add(sphere1);
+      //const sphere1 = Geometry.sphere([0,0,0], [100,100,100], 40, 40, [1,1,1,255], 0);
+      //sciMonk.add(sphere1);
+
+       /*
       const sphere2 = Geometry.sphere([50,0,0], [20,20,20], 10, 10, [1,1,1,255], 0);
       sciMonk.add(sphere2);
       const sphere3 = Geometry.sphere([0,50,0], [20,20,20], 10, 10, [1,1,1,255], 0);
@@ -513,11 +516,12 @@
       const sphere6 = Geometry.sphere([0,0,-50], [20,20,20], 10, 10, [1,1,1,255], 0);
       sciMonk.add(sphere6);
 
+      */
 
       function run(){
         // brainCell.rotate([0.05, 0.05, 0.05]);
         //tree.rotate([0.05, 0.00, 0.00]);
-        box1.rotate([0.05, 0.05, 0.05]);
+        //box1.rotate([0.05, 0.05, 0.05]);
        // sphereX.rotate([0.05, 0.05, 0.05]);
         //box1.rotateAround([0.05, 0, 0], [0,0,100]);
         //box1.scale([1+(randomSigned()*0.05), 1+(randomSigned()*0.05), 1+(randomSigned()*0.05)]);

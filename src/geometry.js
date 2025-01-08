@@ -23,6 +23,12 @@ class Triangle {
     }
   }
 
+  setNormal(vector){
+    const origin = this.origin();
+    this.normalVector[0] = origin;
+    this.normalVector[1] = addV(origin, Vx(vector, 10));
+  }
+
 }
 
 
@@ -92,8 +98,7 @@ class Geometry {
       tNormal[0] *= tNormal[0] == 0 ? 0 : sign(tNormal[0])==sign(oNormal[0]) ? -1:1;
       tNormal[1] *= tNormal[1] == 0 ? 0 : sign(tNormal[1])==sign(oNormal[1]) ? -1:1;
       tNormal[2] *= tNormal[2] == 0 ? 0 : sign(tNormal[2])==sign(oNormal[2]) ? -1:1;
-      triangle.normalVector[0] = tOrigin;
-      triangle.normalVector[1] = addV(tOrigin, Vx(tNormal, 10));
+      triangle.setNormal(tNormal);
     }
   }
 

@@ -99,7 +99,7 @@ class SciMonk {
         // render normal vector of triangle
         //this.nodeVector(triangle.normalVector[0], triangle.normalVector[1],[100,50,50,250],false);
 
-        const point = this.normalIntersectsPlane(triangle, 3000, 1000)
+        const point = this.normalIntersectsPlane(triangle, 4000, 1000)
         if(point){
          // this.cross(point, 20, [255,1,1,255]);
         }else{
@@ -541,8 +541,11 @@ class SciMonk {
     // Each triangle is 50 bytes unit vector (12 bytes), 3 points (12 bytes), and attribute count (2 bytes)
     const result = new Array();
     for(var i = 84; i < arrayBuffer.byteLength; i += 50) {
-      var points = new Float32Array(arrayBuffer.slice(i, i+48));
-      result.push(new Triangle([[points[3],points[4],points[5]], [points[6],points[7],points[8]], [points[9],points[10],points[11]]]));
+      const points = new Float32Array(arrayBuffer.slice(i, i+48));
+      const triangle = new Triangle([[points[3],points[4],points[5]], [points[6],points[7],points[8]], [points[9],points[10],points[11]]]);
+      triangle.setNormal([points[0],points[1],points[2]]);
+      result.push(triangle);
+
     }
     return new Geometry(result, "imported_stl", [1,1,1,255], 1);
   }
