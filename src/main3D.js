@@ -7,15 +7,45 @@
 
 */
 
+class ScimonkView {
+  imageData;
+  width = 0;
+  height = 0;
+  canvas;
+  ctx;
+
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext("2d");
+    this.width = canvas.width;
+    this.height = canvas.height;
+  }
+
+  start(){
+    this.imageData = this.ctx.createImageData(this.width, this.height); 
+  }
+
+  setPixel( x, y, r, g, b, a) {
+    const index = (x + y * this.imageData.width) * 4;
+    this.imageData.data[index+0] = r;
+    this.imageData.data[index+1] = g;
+    this.imageData.data[index+2] = b;
+    this.imageData.data[index+3] = a;
+  }
+
+  end(){
+    this.ctx.putImageData(this.imageData, 0, 0); // at coords 0,0
+  }
+
+}
+
 class SciMonk {
   Depth=1;
   Width=1;
   Height=1;
   CanvasHeight = 0;
   CanvasWidth = 0;
-  imageData;
-  Canvas;
-  Ctx;
+  view;
   isEditable = false;
   dividePlane = true;
 
@@ -40,20 +70,19 @@ class SciMonk {
     this.model.nr = 0;
   }
 
-  init(canvas){
-    this.Canvas = canvas;
-    this.Ctx = this.Canvas.getContext("2d");
+  init(view){
+    this.view = view;
     this.shadow = false;
     this.shadowVector = [0,0,0];
     
     this.maxSurfaceArea = 2500;
     this.maxLineLength = Math.sqrt(this.maxSurfaceArea);
     
-    this.Depth = this.Canvas.width;
-    this.Width = this.Canvas.width;
-    this.Height = this.Canvas.height;
-    this.CanvasHeight = this.Canvas.height;
-    this.CanvasWidth = this.Canvas.width;
+    this.Depth = this.view.width;
+    this.Width = this.view.width;
+    this.Height = this.view.height;
+    this.CanvasHeight = this.view.height;
+    this.CanvasWidth = this.view.width;
     this.viewPort = this.CanvasHeight/this.CanvasWidth;
     this.lightVector = [-this.Width/2,this.Height/2,-this.Depth];
     
@@ -90,26 +119,25 @@ class SciMonk {
   }
 
   render(){
-    this.sequenceStart();
+    this.view.start();
     this.draw();
     for(let geometry of this.model.geometries){
       for(let triangle of geometry.triangles) {
-        
-        //this.lines(triangle.points, geometry.colour, geometry.id);
-        // render normal vector of triangle
-        //this.nodeVector(triangle.normalVector[0], triangle.normalVector[1],[100,50,50,250],false);
-
-        const point = this.normalIntersectsPlane(triangle, 4000, 1000)
+        const point = this.normalIntersectsPlane(triangle, 4000, 1000, 4000);
         if(point){
-         // this.cross(point, 20, [255,1,1,255]);
+           //this.fill(triangle, geometry.colour, geometry.id);
+           //this.nodeVector(triangle.normalVector[0], triangle.normalVector[1],[100,50,50,250],false);
+          //this.cross(point, 20, [255,1,1,255]);
         }else{
-          this.fill(triangle, geometry.colour, geometry.id);
+         this.fill(triangle, geometry.colour, geometry.id);
+         //this.lines(triangle.points, geometry.colour, geometry.id);
+         
         }
       }
     }
 
     this.it++;
-    this.sequenceEnd();
+    this.view.end();
   }
 
   /**
@@ -119,10 +147,10 @@ class SciMonk {
    * @param {number} width 
    * @param {number} depth 
    */
-  normalIntersectsPlane(triangle, width, depth){
+  normalIntersectsPlane(triangle, width, depth, normalLength){
     const w = width/2;
     const uv = triangle.unitVector();
-    const point = planeIntersection(triangle.normalVector[0], addV(triangle.normalVector[0], Vx(uv,depth*2)), [[w,w,depth],[-w,w,depth],[-w,-w,depth],[w,-w,depth]]);
+    const point = planeIntersection(triangle.normalVector[0], addV(triangle.normalVector[0], Vx(uv,normalLength)), [[w,w,depth],[-w,w,depth],[-w,-w,depth],[w,-w,depth]]);
     if(((point[0] < w && point[0] > -w) && (point[1] < w && point[1] > -w)) && uv[2] > 0){
       return point;
     }
@@ -138,25 +166,6 @@ class SciMonk {
   }
 
 
-  sequenceEnd(){
-    /*
-  	this.Ctx.lineWidth = sciMonk.lineWidth;
-		this.Ctx.strokeStyle = sciMonk.lineColour;
-		this.Ctx.closePath(); 
-		this.Ctx.stroke();
-    */
-    this.Ctx.putImageData(this.imageData, 0, 0); // at coords 0,0
-  }
-
-  sequenceStart(){
-    /*
-    this.Ctx.beginPath();
-		this.Ctx.fillStyle = sciMonk.background;
-		this.Ctx.fillRect( 0, 0, Canvas.width, Canvas.height );
-    */
-    this.imageData = this.Ctx.createImageData(this.Width, this.Height); 
-  }
-
   iniDepthMap(){
     var i=0;
     var d = -this.Depth/2;
@@ -171,16 +180,26 @@ class SciMonk {
     colour = this.setAlpha(triangle, colour);
     var nodes = this.multipleNopdes(triangle.points); 
     this.fillTriangle(nodes,colour,id);
+    //this.fillTriangle2(nodes,triangle.origin(),colour,id);
   }
 
-  lines=function(nodes, colour, alpha){
-    if(nodes.length == 2){ // Line
-      this.nodeVector(nodes[0], nodes[1], colour, alpha);
-    }else if(nodes.length > 2){ // Triangle
-      this.nodeVector(nodes[0], nodes[1], colour, alpha);
-      this.nodeVector(nodes[1], nodes[2], colour, alpha);
-      this.nodeVector(nodes[2], nodes[0], colour, alpha);
+  fillTriangle2(triangle, z, colour, id){
+    const points = getPointsInTriangle(triangle);
+    for(let i = 0; i < points.length; i ++){
+      var x = points[i][0];
+      var y = points[i][1];
+      var Zindex = y*(this.CanvasWidth*3) + x*3;
+      if(this.it > this.depthMap[ Zindex + 1] || this.depthMap[Zindex] >= z){
+          this.depthMap[Zindex]=z;
+          this.depthMap[Zindex + 1]=this.it;
+          this.depthMap[Zindex + 2]=id;
+          this.setPixel(
+          x, 
+          y, 
+          colour[0],colour[1],colour[2],colour[3]);
+      }
     }
+
   }
 
   fillTriangle(plane,colour,id){
@@ -191,6 +210,16 @@ class SciMonk {
     var bz = plane[0][2]-plane[2][2];
 
     this.lineFillTriangle(plane[2],b,bz,plane[0],a,az,colour,id);
+  }
+
+  lines=function(nodes, colour, alpha){
+    if(nodes.length == 2){ // Line
+      this.nodeVector(nodes[0], nodes[1], colour, alpha);
+    }else if(nodes.length > 2){ // Triangle
+      this.nodeVector(nodes[0], nodes[1], colour, alpha);
+      this.nodeVector(nodes[1], nodes[2], colour, alpha);
+      this.nodeVector(nodes[2], nodes[0], colour, alpha);
+    }
   }
 
   lineFillTriangle(u,ux,uxZ,v,vx,vxZ,colour,id){
@@ -209,16 +238,12 @@ class SciMonk {
   }
   
   /*
-    NODE
-    computes the position of a node
-
+    computes the 2D position
   */
-  node(cords,xRzR,yRzR,xRyR){
-    var xyz=addV(this.rotateNode(cords,[xRzR,yRzR,xRyR],[0,0,0]),
-          [this.xMove,this.yMove,this.zMove]);
-    return [this.zRx(xyz[0],xyz[2])|0, 
-        this.zRy(xyz[1],xyz[2])|0,
-        xyz[2]];
+  to2D(cords){
+    return [this.zRx(cords[0],cords[2])|0, 
+        this.zRy(cords[1],cords[2])|0,
+        cords[2]];
   }
 
   /*
@@ -229,7 +254,7 @@ class SciMonk {
     var i =0;
     var newNodes = new Array();
     for(i=0;i<nodes.length;i++){
-      newNodes[i] = this.node(nodes[i], this.xRzRot,this.yRzRot,this.xRyRot);
+      newNodes[i] = this.to2D(nodes[i]);
     }
     return newNodes;
   }
@@ -246,8 +271,8 @@ class SciMonk {
       if(alpha){
         colour[3] = 250;
       }
-      var as = this.node(node1,this.xRzRot,this.yRzRot,this.xRyRot);
-      var bs = this.node(node2,this.xRzRot,this.yRzRot,this.xRyRot);
+      var as = this.to2D(node1);
+      var bs = this.to2D(node2);
       this.drawLine(as[0],bs[0],as[1],bs[1],as[2],bs[2],colour);
     }
   }
@@ -271,17 +296,6 @@ class SciMonk {
     }
     return uPlane;
   }
-
-  /*
-    C NODE
-    Returns a regular node.
-
-  */
-  cNode(cords){
-    return this.node(cords[0],cords[1],cords[2],
-    this.xRzRot,this.yRzRot,this.xRyRot)
-  }
-
 
   /*
     ROTATION
@@ -355,7 +369,7 @@ class SciMonk {
 
   /*
     X TO GRAPH
-    From canvas to graph coordinate
+    From view to graph coordinate
 
   */
   xToGraph(x){
@@ -364,7 +378,7 @@ class SciMonk {
 
   /*
     Y TO GRAPH
-    From canvas to graph coordinate
+    From view to graph coordinate
 
   */
   yToGraph(y){
@@ -459,12 +473,8 @@ class SciMonk {
     }
   }
 
-  setPixel( x, y, r, g, b, a) {
-    const index = (x + y * this.imageData.width) * 4;
-    this.imageData.data[index+0] = r;
-    this.imageData.data[index+1] = g;
-    this.imageData.data[index+2] = b;
-    this.imageData.data[index+3] = a;
+  setPixel(x, y, r, g, b, a) {
+    this.view.setPixel(x, y, r, g, b, a);
   }
 
   setAlpha(tringle,colour){
@@ -584,8 +594,117 @@ class SciMonk {
     }
 
     return buffer;
-  } 
+  }
+
+  parseJson(json){
+    const triangles = new Array();
+    for(var i = 0; i < (json.vertices.length - 2); i+=3){
+      triangles.push(new Triangle([json.vertices[i],json.vertices[i+1],json.vertices[i+2]]));
+    }
+    return new Geometry(triangles, [1,1,1,255], 1);
+  }
+
+  toHexColour(colour){
+    return "#"+this.decToHex(colour[0])+this.decToHex(colour[1])+this.decToHex(colour[2]); 
+  }
+
+  decToHex(input){
+    var output = "";
+    var value = input;
+    var quotient = 1;
+    var remainder = 0;
+    while (quotient != 0){
+      quotient = 0;
+      if (((value - 16) > 0)){
+        quotient = (value - value%16) / 16;
+        remainder = (value %= (quotient * 16));
+        value = quotient;
+      }else{
+        remainder = value;
+      }
+      output = this.hexParse(remainder) + output;
+    }
+    return output;
+  }
+
+  hexParse(dec){
+    if(dec >= 10 && dec <=15){
+        var d = dec%10;
+        return "abcdef".substring(d,d+1);
+    }else if(dec == 16)
+      return 10;
+    else{
+      return dec;
+    }
+  }
+
+
 }
 
 var sciMonk = new SciMonk();
+
+/**
+ * Check if a point is inside a triangle using barycentric coordinates.
+ * @param {number[]} p - The point [x, y].
+ * @param {number[]} v0 - First vertex of the triangle [x, y].
+ * @param {number[]} v1 - Second vertex of the triangle [x, y].
+ * @param {number[]} v2 - Third vertex of the triangle [x, y].
+ * @returns {boolean} - True if the point is inside the triangle, false otherwise.
+ */
+function isPointInTriangle(p, v0, v1, v2) {
+    const [x, y] = p;
+    const [x0, y0] = v0;
+    const [x1, y1] = v1;
+    const [x2, y2] = v2;
+
+    // Compute vectors
+    const v0v1 = [x1 - x0, y1 - y0];
+    const v0v2 = [x2 - x0, y2 - y0];
+    const v0p = [x - x0, y - y0];
+
+    // Compute dot products
+    const dot00 = v0v2[0] * v0v2[0] + v0v2[1] * v0v2[1];
+    const dot01 = v0v2[0] * v0v1[0] + v0v2[1] * v0v1[1];
+    const dot02 = v0v2[0] * v0p[0] + v0v2[1] * v0p[1];
+    const dot11 = v0v1[0] * v0v1[0] + v0v1[1] * v0v1[1];
+    const dot12 = v0v1[0] * v0p[0] + v0v1[1] * v0p[1];
+
+    // Compute barycentric coordinates
+    const invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    const u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    const v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+    // Check if point is in triangle
+    return u >= 0 && v >= 0 && u + v <= 1;
+}
+
+/**
+ * Get all discrete points within a triangle.
+ * @param {number[][]} triangle - An array of three vertices, each a 2D point [x, y].
+ * @returns {number[][]} - A 2D array of all discrete points inside the triangle.
+ */
+function getPointsInTriangle(triangle) {
+    const [v0, v1, v2] = triangle;
+
+    // Determine the bounding box of the triangle
+    const minX = Math.min(v0[0], v1[0], v2[0]);
+    const maxX = Math.max(v0[0], v1[0], v2[0]);
+    const minY = Math.min(v0[1], v1[1], v2[1]);
+    const maxY = Math.max(v0[1], v1[1], v2[1]);
+
+    const points = [];
+
+    // Iterate through all points in the bounding box
+    for (let x = Math.ceil(minX); x <= Math.floor(maxX); x++) {
+        for (let y = Math.ceil(minY); y <= Math.floor(maxY); y++) {
+            if (isPointInTriangle([x, y], v0, v1, v2)) {
+                points.push([x, y]);
+            }
+        }
+    }
+
+    return points;
+}
+
+
 

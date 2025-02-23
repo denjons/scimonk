@@ -72,10 +72,20 @@ class Geometry {
 
   translate(vector){
     for(let triangle of this.triangles){
+      triangle.normalVector[0] = addV(triangle.normalVector[0], vector);
+      triangle.normalVector[1] = addV(triangle.normalVector[1], vector);
       for(let i=0; i<triangle.points.length; i++){
         triangle.points[i] = addV(triangle.points[i], vector);
       }
     }
+  }
+
+  center(vector){
+    const origin = this.origin();
+    const uv = unitVector(origin, vector);
+    const len = vLen(origin, vector);
+    const delta = Vx(uv, len);
+    this.translate(delta);
   }
 
   computeNormals(){
@@ -110,6 +120,7 @@ class Geometry {
       }
       this.triangles = array;
     }
+    this.computeNormals();
   }
 
   crushTriangle(triangle, dest){
@@ -181,7 +192,9 @@ class Geometry {
     for(var i = 0; i < top.length; i++){
       squareToTriangles([top[i], top[(i+1)%top.length], bottom[(i+1)%top.length], bottom[i]],cylinder)
     }
-    return new Geometry(cylinder, 'cylinder', colour, id);
+    const g = new Geometry(cylinder, 'cylinder', colour, id);
+    g.computeNormals();
+    return g;
     
   }
 
@@ -193,7 +206,9 @@ class Geometry {
     for(var i = 0; i < bottom.length; i++) {
       cone.push(new Triangle([pos, bottom[i], bottom[(i+1)%bottom.length]]));
     }
-    return new Geometry(cone, 'cone' , colour, id);
+    const g = new Geometry(cone, 'cone' , colour, id);
+    g.computeNormals();
+    return g;
   }
 
 }
@@ -243,30 +258,50 @@ function squareToTriangles(square, triangles) {
   triangles.push(new Triangle([square[2], square[3], square[0]]));
 } 
 
-  function calculateTriangleNormal(triangle) {
-    // Extract the points of the triangle
-    const [p1, p2, p3] = triangle;
+function calculateTriangleNormal(triangle) {
+  // Extract the points of the triangle
+  const [p1, p2, p3] = triangle;
 
-    // Convert points to vectors for calculation
-    const v1 = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-    const v2 = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+  // Convert points to vectors for calculation
+  const v1 = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+  const v2 = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
 
-    // Calculate the cross product of v1 and v2
-    const crossProduct = [
-        v1[1] * v2[2] - v1[2] * v2[1],
-        v1[2] * v2[0] - v1[0] * v2[2],
-        v1[0] * v2[1] - v1[1] * v2[0],
-    ];
+  // Calculate the cross product of v1 and v2
+  const crossProduct = [
+      v1[1] * v2[2] - v1[2] * v2[1],
+      v1[2] * v2[0] - v1[0] * v2[2],
+      v1[0] * v2[1] - v1[1] * v2[0],
+  ];
 
-    // Calculate the magnitude of the cross product (to normalize it)
-    const magnitude = Math.sqrt(
-        crossProduct[0] ** 2 + crossProduct[1] ** 2 + crossProduct[2] ** 2
-    );
+  // Calculate the magnitude of the cross product (to normalize it)
+  const magnitude = Math.sqrt(
+      crossProduct[0] ** 2 + crossProduct[1] ** 2 + crossProduct[2] ** 2
+  );
 
-    // Normalize the cross product to get the normal vector
-    const normal = crossProduct.map((component) => component / magnitude);
+  // Normalize the cross product to get the normal vector
+  const normal = crossProduct.map((component) => component / magnitude);
 
-    return new Float32Array(normal);
+  return new Float32Array(normal);
+}
+
+/*
+	GET ORIGIN
+	returns the center of a given group of nodes
+
+*/
+function getOrigo(nodes){
+	var x=0;
+	var y=0;
+	var z=0;
+	var len = nodes.length; // line 2 or triangle 3
+	var i=0;
+  //console.log("getOrigo: "+ len); is 4
+	for(i=0;i<len;i++){
+		x+=nodes[i][0];
+		y+=nodes[i][1];
+		z+=nodes[i][2];
+	}
+	return [x/len,y/len,z/len];
 }
 
 function rightHandTriangle(a, b, c) {

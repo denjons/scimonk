@@ -31,14 +31,96 @@
     <script type="text/javascript" src="./src/geometry.js"></script>
     <script type="text/javascript" src="./src/main3D.js"></script>
     <script type="text/javascript" src="./src/graph.js"></script>
-    <script type="text/javascript" src="./src/utils.js"></script>
     <script type="text/javascript" src="./src/ai-generated.js"></script>
+    <script type="text/javascript">
+      function dropEventHandler(event){
+        console.log("dropped file" + event);
+        event.preventDefault();
+        if (event.dataTransfer.items) {
+          // Use DataTransferItemList interface to access the file(s)
+          [...event.dataTransfer.items].forEach((item, i) => {
+            // If dropped items aren't files, reject them
+            if (item.kind === "file") {
+              //readJsonfILe(item);
+              readStlFile(item);
+            }
+          });
+        }
+      }
 
-    <!--editor-->
-    <script type="text/javascript" src="./src/editor.js"></script>
+      function dragEnterEventHandler(event){
+        event.preventDefault();
+      }
+
+      function dragOverEventHandler(event){
+        event.preventDefault();
+      }
+
+      function readStlFile(event){
+        var reader = new FileReader();
+        const file = event.getAsFile();
+        reader.readAsArrayBuffer(file);
+        reader.onload = function() {
+          //console.log(reader.result);
+          parseSTL(reader.result);
+        };
+        reader.onerror = function() {
+          console.log(reader.error);
+        };
+      }
+
+      function parseSTL(arrayBuffer) {
+        const geometry = sciMonk.parseSTL(arrayBuffer);
+        geometry.center([0,0,0]);
+        geometry.scale([6,6,6]);
+        geometry.rotate([0,Math.PI/2,Math.PI]);
+        sciMonk.add(geometry);
+        sciMonk.render();
+        updateShapeList();
+      }
+
+      function readJsonfILe(event){
+        var reader = new FileReader();
+        const file = event.getAsFile();
+        reader.readAsText(file);
+        reader.onload = function() {
+          //console.log(reader.result);
+          readJson(reader.result);
+        };
+        reader.onerror = function() {
+          console.log(reader.error);
+        };
+      }
+
+      function readJson(text){
+        const geometry = sciMonk.parseJson(JSON.parse(text));
+        geometry.computeNormals();
+        console.log(geometry);
+        geometry.center([0,0,0]);
+        //geometry.rotate([0,Math.PI/2,Math.PI]);
+        sciMonk.add(geometry);
+        sciMonk.render();
+      }
+
+      function generateStlFile(){
+        console.log("clicked");
+        modelToSTL();
+      }
+
+      function modelToSTL(){
+        const buffer = sciMonk.writeSTL();
+        var file = new Blob([buffer], {type: "application/octet-binary;charset=utf-8"});
+        var a = document.createElement("a"), url = URL.createObjectURL(file);
+        a.href = URL.createObjectURL( file );;
+        a.download = "test.stl";
+        document.body.appendChild(a);
+        a.click();
+
+      } 
+    </script>
   </head>
 
-  <body onkeydown="keyDownEvt(event);" onkeyup="keyUpEvt()" id="body">
+  <body id="body">
     <div id="wraper" >
       <div id="workSpace" ondrop="dropEventHandler(event)" ondragover="dragOverEventHandler(event)" ondragenter="dragEnterEventHandler(event)">
         <div id="canvasDiv">
@@ -90,237 +172,13 @@
           </table>
         </div>
       </div>
-      <div id="help">
-        <h2>How to</h2>
-        <h2>Work with shapes</h2>
-        <p>Pick a shape from the list</p>
-        <img src="css/imgs/boxshape1.png" height="100" />
-        <p>Rotate it and move it in depth, using the following keys</p>
-        <img src="css/imgs/rotatectrl.png" />
-        <p>Hold down shift to scale the shape using the same keys</p>
-        <img src="css/imgs/scalectrl.png" />
-        <p>Now, choose a colour, using the field below the shape-list</p>
-        <p>Finally place the shape somewhere by left clicking</p>
-        <br />
-        <p>
-          If you are working with a sphere, cone or cylinder, you can change the
-          number of nodes in structure by holding down r for more nodes, and f
-          for less.
-        </p>
-        <img src="css/imgs/nodesctrl.png" />
-        <h2>Work with nodes</h2>
-        <p>
-          Place nodes i plane to create a slice of a shape. Press enter and a
-          flat surface should appear. Now, move the cross-hair to a new plane
-          (using z and c-keys) and create yet another slice. When you press
-          enter this time, the two slices will be connected, thus forming a new
-          shape. When you are finished, click the add-struct-button.
-        </p>
-        <h2>Save a shape</h2>
-        <p>
-          Click the 'save shape'-button and save dialogue should appear. Enter
-          the name of your fancy model and you alias, then click save. The model
-          will stored on the server and displayed on the website. Anyone can
-          then later view and also edit the model.
-        </p>
-        <h2>Get source code</h2>
-        <p>
-          Click the 'get source'-button and dialogue with the source code for
-          your model will appear. Just copy the code and paste it into a
-          html-document and the model should then be visible if you open the
-          document in your browser.
-        </p>
-      </div>
-      <div id="shapes">
-        <div id="shapesControl"></div>
-        <div class="divHeader">
-          <h3>Shapes</h3>
-        </div>
-        <button
-          id="box"
-          title="box"
-          style="background-image: url(css/imgs/box.png)"
-          class="shapeImg"
-        ></button>
-        <button
-          id="sphere"
-          title="sphere"
-          style="background-image: url(css/imgs/sphere.png)"
-          class="shapeImg"
-        ></button>
-        <button
-          id="cylinder"
-          title="cylinder"
-          style="background-image: url(css/imgs/cylinder.png)"
-          class="shapeImg"
-        ></button>
-        <button
-          id="cone"
-          title="cone"
-          style="background-image: url(css/imgs/cone.png)"
-          class="shapeImg"
-        ></button>
-        <button
-          id="node"
-          title="node"
-          style="background-image: url(css/imgs/node.png)"
-          class="shapeImg"
-        ></button>
-        <div class="colorBox">
-          <label>Color</label>
-          <input type="color" id="colourPicker" />
-        </div>
-      </div>
-      <div id="shapeList"></div>
-      <div id="control">
-        <table>
-          <tr>
-            <td>
-              <table>
-                <tr>
-                  <td>
-                    <button
-                      class="controlBtn"
-                      style="background-image: url(css/imgs/leftuparrow.png)"
-                      id="rotatePerspClockwise"
-                      class="button_type_5"
-                    ></button>
-                  </td>
-                  <td>
-                    <button
-                      class="controlBtn"
-                      style="background-image: url(css/imgs/uparrow.png)"
-                      id="rotatePerspUp"
-                      style="font-size: 25px"
-                      class="button_type_5"
-                    ></button>
-                  </td>
-                  <td>
-                    <button
-                      class="controlBtn"
-                      style="background-image: url(css/imgs/rightuparrow.png)"
-                      id="rotatePerspAntiClockwise"
-                      class="button_type_5"
-                    ></button>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <button
-                      class="controlBtn"
-                      style="background-image: url(css/imgs/leftarrow.png)"
-                      id="rotatePerspLeft"
-                      class="button_type_5"
-                    ></button>
-                  </td>
-                  <td>
-                    <button
-                      class="controlBtn"
-                      style="background-image: url(css/imgs/ball.png)"
-                      id="resetView"
-                    ></button>
-                  </td>
-                  <td>
-                    <button
-                      class="controlBtn"
-                      style="background-image: url(css/imgs/rightarrow.png)"
-                      id="rotatePerspRight"
-                      class="button_type_5"
-                    ></button>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <button
-                      class="controlBtn"
-                      style="background-image: url(css/imgs/plus.png)"
-                      id="movePerspForeward"
-                      class="button_type_5"
-                    ></button>
-                  </td>
-                  <td>
-                    <button
-                      class="controlBtn"
-                      style="background-image: url(css/imgs/downarrow.png)"
-                      id="rotatePerspDown"
-                      class="button_type_5"
-                    ></button>
-                  </td>
-                  <td>
-                    <button
-                      class="controlBtn"
-                      style="background-image: url(css/imgs/minus.png)"
-                      id="movePerspBack"
-                      class="button_type_5"
-                    ></button>
-                  </td>
-                </tr>
-                <tr>
-                  <td></td>
-                  <td>
-                    <button
-                      class="controlBtn"
-                      style="background-image: url(css/imgs/uparrow.png)"
-                      id="movePerspUp"
-                      class="button_type_5"
-                    ></button>
-                  </td>
-                  <td></td>
-                </tr>
-                <tr>
-                  <td>
-                    <button
-                      class="controlBtn"
-                      style="background-image: url(css/imgs/leftarrow.png)"
-                      id="movePerspLeft"
-                      class="button_type_5"
-                    ></button>
-                  </td>
-                  <td>
-                    <button
-                      class="controlBtn"
-                      style="background-image: url(css/imgs/downarrow.png)"
-                      id="movePerspDown"
-                      class="button_type_5"
-                    ></button>
-                  </td>
-                  <td>
-                    <button
-                      class="controlBtn"
-                      style="background-image: url(css/imgs/rightarrow.png)"
-                      id="movePerspRight"
-                      class="button_type_5"
-                    ></button>
-                  </td>
-                </tr>
-              </table>
-            </td>
-            <td></td>
-          </tr>
-          <tr>
-            <!--<td><label>DrawMethod</label>
-            <input id="drawMethod" type="number" onChange="setDrawMethod(this.value)"></td>-->
-          </tr>
-        </table>
-        <button
-          id="snapShot"
-          style="background-image: url(css/imgs/camera.png)"
-        ></button>
-      </div>
     </div>
     <script type="text/javascript" id="editorScript">
       
-      /*
-      iniGUI();
-     
-      iniEditor(
-        document.getElementById("canvasDiv"),
-        document.getElementById("message"),
-        document.getElementById("shapesControl")
-      );
-      */
+ 
 
-      sciMonk.init(document.getElementById("canvas"));
+      var view = new ScimonkView(document.getElementById("canvas"))
+      sciMonk.init(view);
 
       /*
       sciMonk.moveMax = 1000;
@@ -498,8 +356,9 @@
      
       const box1 = Geometry.box([0,0,0], [100,100,100], [1,1,1,255], 1);
       //box1.crushTriangles(2);
-      //box1.shakeTriangles(7);
+      //box1.shakeTriangles(3);
       sciMonk.add(box1);
+
 
       //const sphere1 = Geometry.sphere([0,0,0], [100,100,100], 40, 40, [1,1,1,255], 0);
       //sciMonk.add(sphere1);
@@ -518,6 +377,7 @@
 
       */
 
+
       function run(){
         // brainCell.rotate([0.05, 0.05, 0.05]);
         //tree.rotate([0.05, 0.00, 0.00]);
@@ -526,10 +386,13 @@
         //box1.rotateAround([0.05, 0, 0], [0,0,100]);
         //box1.scale([1+(randomSigned()*0.05), 1+(randomSigned()*0.05), 1+(randomSigned()*0.05)]);
         //box1.translate([randomSigned(), randomSigned(), randomSigned()]);
-        sciMonk.rotate([0.05, 0.05, 0.05]);
+        //box1.shakeTriangles(3);
+        sciMonk.rotate([0.05,0,0]);
         sciMonk.render();
         var time = setTimeout("run()", 25);
       }
+
+       sciMonk.render();
 
       run();
 
