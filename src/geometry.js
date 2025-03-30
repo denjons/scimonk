@@ -1,4 +1,3 @@
-
 class Triangle {
   constructor(points) {
     this.points = points;
@@ -29,6 +28,44 @@ class Triangle {
     this.normalVector[1] = addV(origin, Vx(vector, 10));
   }
 
+  translate1(vector){
+    for(let i=0; i<this.points.length; i++){
+      this.points[i] = addV(this.points[i], vector);
+    }
+  }
+
+  /**
+   * Projects the triangle onto a plane defined by two vectors.
+   * @param {Array} planeVector1 - The first vector defining the plane.
+   * @param {Array} planeVector2 - The second vector defining the plane.
+   * @returns {Triangle} - A new Triangle instance projected onto the plane.
+   * 
+   * Example usage:
+   * const triangle = new Triangle([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
+   * const projected = triangle.project([1, 0, 0], [0, 1, 0]);
+   * console.log(projected.points); // Points projected onto the plane
+   */
+  project(planeVector1, planeVector2) {
+    const planeNormal = calculateTriangleNormal([planeVector1, planeVector2, [0, 0, 0]]);
+    const projectedPoints = this.points.map(point => {
+      const toPoint = [point[0], point[1], point[2]];
+      const dotProduct = toPoint[0] * planeNormal[0] + toPoint[1] * planeNormal[1] + toPoint[2] * planeNormal[2];
+      return [
+        point[0] - dotProduct * planeNormal[0],
+        point[1] - dotProduct * planeNormal[1],
+        point[2] - dotProduct * planeNormal[2]
+      ];
+    });
+    return new Triangle(projectedPoints);
+  }
+
+  copy() {
+    const copiedPoints = this.points.map(point => [...point]);
+    const copiedNormalVector = this.normalVector.map(vector => [...vector]);
+    const copiedTriangle = new Triangle(copiedPoints);
+    copiedTriangle.normalVector = copiedNormalVector;
+    return copiedTriangle;
+  }
 }
 
 
@@ -211,6 +248,17 @@ class Geometry {
     return g;
   }
 
+  static custom(triangles, colour, id){
+    const g = new Geometry(triangles, 'custom', colour, id);
+    g.computeNormals();
+    return g;
+  }
+
+  copy() {
+    const copiedTriangles = this.triangles.map(triangle => triangle.copy());
+    return new Geometry(copiedTriangles, this.type, this.colour, this.id);
+  }
+
 }
 
 function boxTriangles(x, y, z, w, h, d){
@@ -257,6 +305,34 @@ function squareToTriangles(square, triangles) {
   triangles.push(new Triangle([square[0], square[1], square[2]]));
   triangles.push(new Triangle([square[2], square[3], square[0]]));
 } 
+
+function gridToTriangles(grid, triangles, levels){
+
+  if(levels <= 0){
+    return;
+  }
+  levels--;
+
+  const midLeft = middle(grid[0], grid[1]);
+  const midTop = middle(grid[1], grid[2]);
+  const midright = middle(grid[2], grid[3]);
+  const midBottom = middle(grid[3], grid[0]);
+  const center = middle(midLeft, midright);
+
+  if(levels <= 0){
+    squareToTriangles([grid[0], midLeft, center, midBottom], triangles);
+    squareToTriangles([midLeft, grid[1], midTop, center], triangles);
+    squareToTriangles([center, midTop, grid[2], midright], triangles);
+    squareToTriangles([midBottom, center, midright, grid[3]], triangles);
+  }else{
+    gridToTriangles([grid[0], midLeft, center, midBottom], triangles, levels);
+    gridToTriangles([midLeft, grid[1], midTop, center], triangles, levels);
+    gridToTriangles([center, midTop, grid[2], midright], triangles, levels);
+    gridToTriangles([midBottom, center, midright, grid[3]], triangles, levels);
+  }
+
+
+}
 
 function calculateTriangleNormal(triangle) {
   // Extract the points of the triangle

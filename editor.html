@@ -31,7 +31,9 @@
     <script type="text/javascript" src="./src/geometry.js"></script>
     <script type="text/javascript" src="./src/main3D.js"></script>
     <script type="text/javascript" src="./src/graph.js"></script>
-    <script type="text/javascript" src="./src/ai-generated.js"></script>
+    <script type="text/javascript" src="./src/views.js"></script>
+    <script type="text/javascript" src="./src/items.js"></script>
+
     <script type="text/javascript">
       function dropEventHandler(event){
         console.log("dropped file" + event);
@@ -123,12 +125,12 @@
   <body id="body">
     <div id="wraper" >
       <div id="workSpace" ondrop="dropEventHandler(event)" ondragover="dragOverEventHandler(event)" ondragenter="dragEnterEventHandler(event)">
-        <div id="canvasDiv">
+        <div id="canvasDiv" style="display: flex;">
           <canvas
             id="canvas"
-            width="750"
-            height="750"
-            style="background: white"
+            width="1500"
+            height="1500"
+            style="background: white; margin-right: 10px;"
           ></canvas>
         </div>
         <div id="inputPanel">
@@ -175,11 +177,6 @@
     </div>
     <script type="text/javascript" id="editorScript">
       
- 
-
-      var view = new ScimonkView(document.getElementById("canvas"))
-      sciMonk.init(view);
-
       /*
       sciMonk.moveMax = 1000;
 
@@ -354,10 +351,7 @@
       //sciMonk.zMove = 0;
 
      
-      const box1 = Geometry.box([0,0,0], [100,100,100], [1,1,1,255], 1);
-      //box1.crushTriangles(2);
-      //box1.shakeTriangles(3);
-      sciMonk.add(box1);
+
 
 
       //const sphere1 = Geometry.sphere([0,0,0], [100,100,100], 40, 40, [1,1,1,255], 0);
@@ -375,21 +369,48 @@
       const sphere6 = Geometry.sphere([0,0,-50], [20,20,20], 10, 10, [1,1,1,255], 0);
       sciMonk.add(sphere6);
 
+
+      const box1 = Geometry.box([0,0,0], [100,100,100], [1,1,1,255], 1);
+      box1.crushTriangles(1);
+      box1.shakeTriangles(7);
+      sciMonk.add(box1);
       */
 
+      const view = new ScimonkView(document.getElementById("canvas"));
+     // view.reset = function() {};
+      view.fill([200,150,150,255]);
+      const drawModes = new DrawModes(true, false);
+      drawModes.overrideLineColour([3,3,3,255]);
+      drawModes.overrideFillColour([170,170,170,255]);
+      drawModes.overrideSkipBackFacingTriangles(false);
+      //drawModes.setShadow(true, [[1,0,0],[0,0,1]], [0,-300,0], [50,50,50,255]);
+      //var view = new ScimonkTextView(document.getElementById("textarea"), 100, 100);
+      var sciMonk = new SciMonk(view, drawModes);
+
+      var bag = createBag(0,-50,0,100,150,50, [3,3,3,255], 1);
+     // bag.crushTriangles(1);
+      bag.shakeTriangles(7);
+      sciMonk.add(bag);
+
+      const rott = [Math.random()/10, Math.random()/10, Math.random()/10];
 
       function run(){
-        // brainCell.rotate([0.05, 0.05, 0.05]);
-        //tree.rotate([0.05, 0.00, 0.00]);
-        //box1.rotate([0.05, 0.05, 0.05]);
-       // sphereX.rotate([0.05, 0.05, 0.05]);
-        //box1.rotateAround([0.05, 0, 0], [0,0,100]);
-        //box1.scale([1+(randomSigned()*0.05), 1+(randomSigned()*0.05), 1+(randomSigned()*0.05)]);
-        //box1.translate([randomSigned(), randomSigned(), randomSigned()]);
-        //box1.shakeTriangles(3);
-        sciMonk.rotate([0.05,0,0]);
+        //drawModes.overrideFillColour([255*Math.random(),255*Math.random(),255*Math.random(),255]);
+        bag.rotate(rott);        
+        var newBag = bag.copy();
+        newBag.rotate(rott);
+        newBag.shakeTriangles(2);
+        sciMonk.add(newBag);
+        bag = newBag;
+        bag.shakeTriangles(7);
+        sciMonk.rotate(rott)
         sciMonk.render();
-        var time = setTimeout("run()", 25);
+ 
+        if(sciMonk.it < 200){
+          var time = setTimeout("run()", 25);
+        }else{
+          view.finish();
+        }
       }
 
        sciMonk.render();
@@ -399,6 +420,8 @@
       function reset(){
         sciMonk.reset();
       }
+
+
     </script>
   </body>
 </html>

@@ -1,4 +1,3 @@
-
 /*
 	SCIMONK
 	BETA VERSION_1.0
@@ -7,34 +6,43 @@
 
 */
 
-class ScimonkView {
-  imageData;
-  width = 0;
-  height = 0;
-  canvas;
-  ctx;
 
-  constructor(canvas) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext("2d");
-    this.width = canvas.width;
-    this.height = canvas.height;
+
+
+
+class DrawModes{
+  fill = true;
+  lines = true;
+  shadow = false;
+  shadowVector = [[1,0,0],[0,0,1]]; // shadow plane
+  shadowTranslate = [0,-200,0]; // plane translation
+  shadowColour = [50,50,50,255];
+  lineColour; 
+  fillColour;
+  skipBackFacingTriangles = true;
+
+  constructor(fill, lines) {
+    this.fill = fill;
+    this.lines = lines;
   }
 
-  start(){
-    this.imageData = this.ctx.createImageData(this.width, this.height); 
+  setShadow(shadow, vector, translate, colour){
+    this.shadow = shadow;
+    this.shadowVector = vector;
+    this.shadowTranslate = translate;
+    this.shadowColour = colour;
   }
 
-  setPixel( x, y, r, g, b, a) {
-    const index = (x + y * this.imageData.width) * 4;
-    this.imageData.data[index+0] = r;
-    this.imageData.data[index+1] = g;
-    this.imageData.data[index+2] = b;
-    this.imageData.data[index+3] = a;
+  overrideLineColour(colour){
+    this.lineColour = colour;
   }
 
-  end(){
-    this.ctx.putImageData(this.imageData, 0, 0); // at coords 0,0
+  overrideFillColour(colour){
+    this.fillColour = colour;
+  }
+
+  overrideSkipBackFacingTriangles(skip){
+    this.skipBackFacingTriangles = skip;
   }
 
 }
@@ -48,7 +56,6 @@ class SciMonk {
   view;
   isEditable = false;
   dividePlane = true;
-
   moveMax=0;
 
   yMove = 0;
@@ -60,20 +67,20 @@ class SciMonk {
   undefinedShapeId = -1;
   it = 1;
   update = true;
+  drawModes = new DrawModes(true, true, false);
 
-  constructor(){
+  constructor(view, drawModes) {
     this.model = new Object();
     this.model.geometries = new Array();
     this.model.name="no title";
     this.model.user="Anonymous";
     this.model.modelId = 0;
     this.model.nr = 0;
-  }
-
-  init(view){
     this.view = view;
-    this.shadow = false;
-    this.shadowVector = [0,0,0];
+
+    if(drawModes){
+      this.drawModes = drawModes;
+    }
     
     this.maxSurfaceArea = 2500;
     this.maxLineLength = Math.sqrt(this.maxSurfaceArea);
@@ -96,9 +103,6 @@ class SciMonk {
     this.shadowMap = new Array();
     this.iniDepthMap();
     // default draw method
-    this.draw=function draw(){
-      
-    };
   }
 
   addGeometry(triangles, type, colour, scale, rotation) {
@@ -119,25 +123,35 @@ class SciMonk {
   }
 
   render(){
-    this.view.start();
-    this.draw();
-    for(let geometry of this.model.geometries){
+    this.view.reset();
+    for(let geometry of this.model.geometries) {
       for(let triangle of geometry.triangles) {
-        const point = this.normalIntersectsPlane(triangle, 4000, 1000, 4000);
+
+        var point;
+        if(this.drawModes.skipBackFacingTriangles){
+          point = this.normalIntersectsPlane(triangle, 4000, 1000, 4000);
+        }
         if(point){
            //this.fill(triangle, geometry.colour, geometry.id);
            //this.nodeVector(triangle.normalVector[0], triangle.normalVector[1],[100,50,50,250],false);
           //this.cross(point, 20, [255,1,1,255]);
         }else{
-         this.fill(triangle, geometry.colour, geometry.id);
-         //this.lines(triangle.points, geometry.colour, geometry.id);
-         
+          if(this.drawModes.fill){
+            this.fill(triangle, this.drawModes.fillColour ? this.drawModes.fillColour : geometry.colour, geometry.id);
+          }
+          if(this.drawModes.lines){
+            this.lines(triangle.points, this.drawModes.lineColour ? this.drawModes.lineColour : geometry.colour, geometry.id);
+          }
+          if(this.drawModes.shadow){
+            var shadow = triangle.project(this.drawModes.shadowVector[0],this.drawModes.shadowVector[1]);
+            shadow.translate1(this.drawModes.shadowTranslate);
+            this.fill(shadow,this.drawModes.shadowColour,0);
+          }
         }
       }
     }
-
     this.it++;
-    this.view.end();
+    this.view.update();
   }
 
   /**
@@ -494,10 +508,10 @@ class SciMonk {
     else
     a = vectorAngle(Vx(nv,-1),lv);
     
-    return [colour[0] , 
-        colour[1] ,
-        colour[2],
-        200+55*Math.cos(a)];
+    return [Math.max(colour[0]-55*Math.cos(a),1), 
+            Math.max(colour[1]-55*Math.cos(a),1),
+            Math.max(colour[2]-55*Math.cos(a),1),
+            200+55*Math.cos(a)];
   }
 
   cross=function(node,w,colour){
@@ -508,7 +522,7 @@ class SciMonk {
   }
 
   castShadow(nodes){
-    return translateNodes(nodesXm(nodes,[[1,0,0],[0,0,0],[0,0,1]]),this.shadowVector);
+    return translateNodes(nodesXm(nodes,[[1,0,0],[0,0,0],[0,0,1]]),this.drawModes.shadowVector);
   }
 
   objectsToImages(objects){
@@ -531,20 +545,6 @@ class SciMonk {
 
   }
 
-  objectToImage(object){
-    this.reset();
-    var old = this.draw;
-    this.draw = function(){
-      batchColourMapShapes(objects[i].shapes);
-    }
-    this.update=true;
-    render();
-    var img = document.createElement("img");
-    img.src = Canvas.toDataURL("image/png");
-    this.draw = old;
-    this.update=true;
-    return imgs;
-  }
 
   parseSTL(arrayBuffer){
     // Header (80 bytes) and number of triangles (4 bytes) 0 - 83
@@ -641,7 +641,7 @@ class SciMonk {
 
 }
 
-var sciMonk = new SciMonk();
+//var sciMonk = new SciMonk();
 
 /**
  * Check if a point is inside a triangle using barycentric coordinates.
@@ -706,5 +706,12 @@ function getPointsInTriangle(triangle) {
     return points;
 }
 
-
+/**
+ * Creates and returns a copy of the given array.
+ * @param {Array} array - The array to copy.
+ * @returns {Array} - A new array that is a copy of the input array.
+ */
+function copyArray(array) {
+    return array.slice();
+}
 
