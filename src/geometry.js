@@ -1,4 +1,135 @@
-class Triangle {
+import { 
+  addV, Vx, vLen, unitVector, 
+  scale, sign, copyArray, middle,
+  getOrigo, rotateNode
+} from './graph.js';
+
+// Helper functions
+function boxTriangles(x, y, z, w, h, d) {
+	w=w/2;
+	h=h/2;
+	d=d/2;
+  var array = new Array();
+  // front
+  squareToTriangles([[x-w,y-h,z-d],[x-w,y+h,z-d],[x+w,y+h,z-d],[x+w,y-h,z-d]], array);
+    // left
+  squareToTriangles([[x-w,y+h,z+d],[x-w,y+h,z-d],[x-w,y-h,z-d],[x-w,y-h,z+d]], array);
+    // bottom
+  squareToTriangles([[x-w,y-h,z+d],[x-w,y-h,z-d],[x+w,y-h,z-d],[x+w,y-h,z+d]], array);
+
+   // back
+   squareToTriangles([[x-w,y-h,z+d],[x+w,y-h,z+d],[x+w,y+h,z+d],[x-w,y+h,z+d]], array);
+    // right
+   squareToTriangles([[x+w,y+h,z-d],[x+w,y+h,z+d],[x+w,y-h,z+d],[x+w,y-h,z-d]], array);
+    // top
+  squareToTriangles([[x-w,y+h,z-d],[x-w,y+h,z+d],[x+w,y+h,z+d],[x+w,y+h,z-d]], array);
+  return array;
+}
+
+function sphereCoordinate(pos, size, i, j, sn, sr) {
+  var end = (2*Math.PI)/sr*(j-1);
+  return [pos[0]+((size[0]/2)*Math.sin(Math.PI/sn*i))*Math.cos(end), 
+						pos[1]+(size[1]/2)*Math.sin(Math.PI/2-Math.PI/sn*i),
+						pos[2]+((size[2]/2)*Math.sin(Math.PI/sn*i))*Math.sin(end)];
+}
+
+function xRzCircle(pos, width, depth, ls){
+	var i = 0;
+	var lines = new Array();
+	for(i=0;i<=ls;i++){
+		lines[i] = [pos[0]+width*Math.cos(2*Math.PI/ls*i),
+						pos[1],
+						pos[2]+depth*Math.sin(2*Math.PI/ls*i)];
+	}
+	return [lines];
+}
+
+function squareToTriangles(square, triangles) {
+  triangles.push(new Triangle([square[0], square[1], square[2]]));
+  triangles.push(new Triangle([square[2], square[3], square[0]]));
+}
+
+function calculateTriangleNormal(triangle) {
+  // Extract the points of the triangle
+  const [p1, p2, p3] = triangle;
+
+  // Convert points to vectors for calculation
+  const v1 = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+  const v2 = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+
+  // Calculate the cross product of v1 and v2
+  const crossProduct = [
+      v1[1] * v2[2] - v1[2] * v2[1],
+      v1[2] * v2[0] - v1[0] * v2[2],
+      v1[0] * v2[1] - v1[1] * v2[0],
+  ];
+
+  // Calculate the magnitude of the cross product (to normalize it)
+  const magnitude = Math.sqrt(
+      crossProduct[0] ** 2 + crossProduct[1] ** 2 + crossProduct[2] ** 2
+  );
+
+  // Normalize the cross product to get the normal vector
+  const normal = crossProduct.map((component) => component / magnitude);
+
+  return new Float32Array(normal);
+}
+
+export function gridToTriangles(grid, triangles, levels){
+
+  if(levels <= 0){
+    return;
+  }
+  levels--;
+
+  const midLeft = middle(grid[0], grid[1]);
+  const midTop = middle(grid[1], grid[2]);
+  const midright = middle(grid[2], grid[3]);
+  const midBottom = middle(grid[3], grid[0]);
+  const center = middle(midLeft, midright);
+
+  if(levels <= 0){
+    squareToTriangles([grid[0], midLeft, center, midBottom], triangles);
+    squareToTriangles([midLeft, grid[1], midTop, center], triangles);
+    squareToTriangles([center, midTop, grid[2], midright], triangles);
+    squareToTriangles([midBottom, center, midright, grid[3]], triangles);
+  }else{
+    gridToTriangles([grid[0], midLeft, center, midBottom], triangles, levels);
+    gridToTriangles([midLeft, grid[1], midTop, center], triangles, levels);
+    gridToTriangles([center, midTop, grid[2], midright], triangles, levels);
+    gridToTriangles([midBottom, center, midright, grid[3]], triangles, levels);
+  }
+
+
+}
+
+function rightHandTriangle(a, b, c) {
+  let x = Math.max(a[0],Math.max(b[0], c[0]));
+  if(a[0] == x){
+    let y = Math.max(b[1], c[1]);
+    if(b[1] == y) {
+      return [a, b, c];
+    }else{
+      return [a, c, b];
+    }
+  }else if(b[0] == x){
+    let y = Math.max(b[1], c[1]);
+    if(a[1] == y) {
+      return [b, a, c];
+    }else{
+      return [b, c, a];
+    }
+  }else if(c[0] == x){
+    let y = Math.max(b[1], c[1]);
+    if(a[1] == y) {
+      return [c, a, b];
+    }else{
+      return [c, b, a];
+    }
+  }
+}
+
+export class Triangle {
   constructor(points) {
     this.points = points;
     this.normalVector = [];
@@ -69,7 +200,7 @@ class Triangle {
 }
 
 
-class Geometry {
+export class Geometry {
 
   constructor(triangles, type, colour, id) {
     this.triangles = triangles;
@@ -99,10 +230,10 @@ class Geometry {
 
   rotateAround(vector, origin){
     for(let triangle of this.triangles ){
-      triangle.normalVector[0] = sciMonk.rotateNode(triangle.normalVector[0], vector, origin);
-      triangle.normalVector[1] = sciMonk.rotateNode(triangle.normalVector[1], vector, origin);
+      triangle.normalVector[0] = rotateNode(triangle.normalVector[0], vector, origin);
+      triangle.normalVector[1] = rotateNode(triangle.normalVector[1], vector, origin);
       for(let j=0; j<triangle.points.length; j++){
-        triangle.points[j] = sciMonk.rotateNode(triangle.points[j], vector, origin);
+        triangle.points[j] = rotateNode(triangle.points[j], vector, origin);
       }
     }
   }
@@ -259,149 +390,4 @@ class Geometry {
     return new Geometry(copiedTriangles, this.type, this.colour, this.id);
   }
 
-}
-
-function boxTriangles(x, y, z, w, h, d){
-	w=w/2;
-	h=h/2;
-	d=d/2;
-  var array = new Array();
-  // front
-  squareToTriangles([[x-w,y-h,z-d],[x-w,y+h,z-d],[x+w,y+h,z-d],[x+w,y-h,z-d]], array);
-    // left
-  squareToTriangles([[x-w,y+h,z+d],[x-w,y+h,z-d],[x-w,y-h,z-d],[x-w,y-h,z+d]], array);
-    // bottom
-  squareToTriangles([[x-w,y-h,z+d],[x-w,y-h,z-d],[x+w,y-h,z-d],[x+w,y-h,z+d]], array);
-
-   // back
-   squareToTriangles([[x-w,y-h,z+d],[x+w,y-h,z+d],[x+w,y+h,z+d],[x-w,y+h,z+d]], array);
-    // right
-   squareToTriangles([[x+w,y+h,z-d],[x+w,y+h,z+d],[x+w,y-h,z+d],[x+w,y-h,z-d]], array);
-    // top
-  squareToTriangles([[x-w,y+h,z-d],[x-w,y+h,z+d],[x+w,y+h,z+d],[x+w,y+h,z-d]], array);
-  return array;
-
-}
-
-function sphereCoordinate(pos, size, i, j, sn, sr) {
-  var end = (2*Math.PI)/sr*(j-1);
-  return [pos[0]+((size[0]/2)*Math.sin(Math.PI/sn*i))*Math.cos(end), 
-						pos[1]+(size[1]/2)*Math.sin(Math.PI/2-Math.PI/sn*i),
-						pos[2]+((size[2]/2)*Math.sin(Math.PI/sn*i))*Math.sin(end)];
-}
-
-function xRzCircle(pos, width, depth, ls){
-	var i = 0;
-	var lines = new Array();
-	for(i=0;i<=ls;i++){
-		lines[i] = [pos[0]+width*Math.cos(2*Math.PI/ls*i),
-						pos[1],
-						pos[2]+depth*Math.sin(2*Math.PI/ls*i)];
-	}
-	return [lines];
-}
-
-function squareToTriangles(square, triangles) {
-  triangles.push(new Triangle([square[0], square[1], square[2]]));
-  triangles.push(new Triangle([square[2], square[3], square[0]]));
-} 
-
-function gridToTriangles(grid, triangles, levels){
-
-  if(levels <= 0){
-    return;
-  }
-  levels--;
-
-  const midLeft = middle(grid[0], grid[1]);
-  const midTop = middle(grid[1], grid[2]);
-  const midright = middle(grid[2], grid[3]);
-  const midBottom = middle(grid[3], grid[0]);
-  const center = middle(midLeft, midright);
-
-  if(levels <= 0){
-    squareToTriangles([grid[0], midLeft, center, midBottom], triangles);
-    squareToTriangles([midLeft, grid[1], midTop, center], triangles);
-    squareToTriangles([center, midTop, grid[2], midright], triangles);
-    squareToTriangles([midBottom, center, midright, grid[3]], triangles);
-  }else{
-    gridToTriangles([grid[0], midLeft, center, midBottom], triangles, levels);
-    gridToTriangles([midLeft, grid[1], midTop, center], triangles, levels);
-    gridToTriangles([center, midTop, grid[2], midright], triangles, levels);
-    gridToTriangles([midBottom, center, midright, grid[3]], triangles, levels);
-  }
-
-
-}
-
-function calculateTriangleNormal(triangle) {
-  // Extract the points of the triangle
-  const [p1, p2, p3] = triangle;
-
-  // Convert points to vectors for calculation
-  const v1 = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-  const v2 = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
-
-  // Calculate the cross product of v1 and v2
-  const crossProduct = [
-      v1[1] * v2[2] - v1[2] * v2[1],
-      v1[2] * v2[0] - v1[0] * v2[2],
-      v1[0] * v2[1] - v1[1] * v2[0],
-  ];
-
-  // Calculate the magnitude of the cross product (to normalize it)
-  const magnitude = Math.sqrt(
-      crossProduct[0] ** 2 + crossProduct[1] ** 2 + crossProduct[2] ** 2
-  );
-
-  // Normalize the cross product to get the normal vector
-  const normal = crossProduct.map((component) => component / magnitude);
-
-  return new Float32Array(normal);
-}
-
-/*
-	GET ORIGIN
-	returns the center of a given group of nodes
-
-*/
-function getOrigo(nodes){
-	var x=0;
-	var y=0;
-	var z=0;
-	var len = nodes.length; // line 2 or triangle 3
-	var i=0;
-  //console.log("getOrigo: "+ len); is 4
-	for(i=0;i<len;i++){
-		x+=nodes[i][0];
-		y+=nodes[i][1];
-		z+=nodes[i][2];
-	}
-	return [x/len,y/len,z/len];
-}
-
-function rightHandTriangle(a, b, c) {
-  let x = Math.max(a[0],Math.max(b[0], c[0]));
-  if(a[0] == x){
-    let y = Math.max(b[1], c[1]);
-    if(b[1] == y) {
-      return [a, b, c];
-    }else{
-      return [a, c, b];
-    }
-  }else if(b[0] == x){
-    let y = Math.max(b[1], c[1]);
-    if(a[1] == y) {
-      return [b, a, c];
-    }else{
-      return [b, c, a];
-    }
-  }else if(c[0] == x){
-    let y = Math.max(b[1], c[1]);
-    if(a[1] == y) {
-      return [c, a, b];
-    }else{
-      return [c, b, a];
-    }
-  }
 }

@@ -1,4 +1,3 @@
-
 /*
 	SCIMONK
 	BETA VERSION_1.0
@@ -16,7 +15,7 @@
 	Gives the angle between the u and v vectors. The rotation is counter clockwise.
 	
 */
-function vectorAngle( u, v){
+export function vectorAngle( u, v){
 
 	var x1 = u[0];	var x2 = v[0];
 	var y1 = u[1];	var y2 = v[1];
@@ -32,6 +31,33 @@ function vectorAngle( u, v){
 	return v;
 }
 
+  /*
+    ROTATION
+  */
+  export function rotateNode(node,rad,origo){
+    return rotateNodeT(
+          rotateNodeT(
+            rotateNodeT(node,origo,XZrot(rad[0])),
+              origo,YZrot(rad[1])),
+            origo,XYrot(rad[2]));
+  }
+
+  function rotateNodeT(node,origo,matrix){
+    return addV(origo,Ab(matrix,uToV(origo,node)));
+  }
+
+  function XZrot(a){
+    return [[Math.cos(a),0,-Math.sin(a)],[0,1,0],[Math.sin(a),0,Math.cos(a)]];
+  }
+
+  function YZrot(a){
+    return [[1,0,0],[0,Math.cos(a),Math.sin(a)],[0,-Math.sin(a),Math.cos(a)]];
+  }
+
+  function XYrot(a){
+    return [[Math.cos(a),Math.sin(a),0],[-Math.sin(a),Math.cos(a),0],[0,0,1]];
+  }
+
 
 /*
 	-------------------- MATH UTILITIES ------------------------
@@ -43,20 +69,20 @@ function vectorAngle( u, v){
 	SCALAR PRODUCT
 
 */
-	function scalar(u,v){
-		var i =0;
-		var res =0;
-		for(i=0;i<u.length;i++)
-			res += u[i]*v[i];
-		return res;
-	}
+export function scalar(u,v){
+	var i =0;
+	var res =0;
+	for(i=0;i<u.length;i++)
+		res += u[i]*v[i];
+	return res;
+}
 
 /*
 	
 	u -> v
 
 */
-function uToV(u,v){
+export function uToV(u,v){
 	var vec = new Array();
 	var i =0;
 	for(i=0;i<u.length;i++){
@@ -71,7 +97,7 @@ function uToV(u,v){
 	for vectors [X1, .. ,Xn]^t
 
 */
-function addV(u,v){
+export function addV(u,v){
 	var w = new Array();
 	for(let i=0;i<u.length;i++){
 		w[i] = u[i]+v[i];
@@ -82,7 +108,7 @@ function addV(u,v){
 /*
 	VECTOR + NUMBER
 */
-function Vt(v,t){
+export function Vt(v,t){
 	var i = 0;
 	var nv = new Array();
 	for(i=0;i<v.length;i++)
@@ -96,7 +122,7 @@ function Vt(v,t){
 	VECTOR LENGTH
   Pythagorean theorem
 */
-function vLen(v){
+export function vLen(v){
 	var i =0;
 	var len =0;
 	for(i=0;i<v.length;i++){
@@ -110,14 +136,14 @@ function vLen(v){
 	distance between two nodes
 
 */
-function vDist(u,v){
+export function vDist(u,v){
 	return vLen(uToV(u,v));
 }
 
 /*
 	VECTOR * VECTOR
 */
-function uXv(u,v){
+export function uXv(u,v){
 	var i = 0; 
 	var nv = new Array();
 	for(i=0;i<u.length;i++){
@@ -129,14 +155,14 @@ function uXv(u,v){
 /*
 	SCALE NODE
 */
-function scale(v,origo,vn){
+export function scale(v,origo,vn){
 	return addV(origo,uXv(uToV(origo,v),vn));  
 }
 
 /*
 	SCALE NODES
 */
-function batchScale(vs,origo,vn){
+export function batchScale(vs,origo,vn){
 	var i = 0; 
 	var nv = new Array();
 	for(i=0;i<vs.length;i++){
@@ -152,7 +178,7 @@ function batchScale(vs,origo,vn){
 
 */
 
-function lineNormal(u,v){
+export function lineNormal(u,v){
 	var uv = uToV(u,v);
 	var n = [u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]];
 	var b = vLen(uv);
@@ -164,12 +190,12 @@ function lineNormal(u,v){
 	plane normal
 
 */
-function planeNormal(plane){
+export function planeNormal(plane){
 	var origo = getOrigo(plane);
   return planeNormalFromPoint(plane, origo);
 }
 
-function planeNormalFromPoint(plane, point){
+export function planeNormalFromPoint(plane, point){
 	return lineNormal(uToV(point,plane[0]),uToV(point,plane[1]));
 }
 
@@ -179,7 +205,7 @@ function planeNormalFromPoint(plane, point){
 	Only for 3x3-matrices
 	
 */
-function det(A){
+export function det(A){
 	var D = A;
 	D[3]=A[0];
 	D[4]=A[1];
@@ -196,7 +222,7 @@ function det(A){
 	*Rounds to 6 decimals
 	
 */
-function inverseMatrix(Am){
+export function inverseMatrix(Am){
 	var B = copyArray(Am);
 	B[3]=[1,0,0];
 	B[4]=[0,1,0];
@@ -233,7 +259,7 @@ function inverseMatrix(Am){
 	* Rounds to 6 decimals
 	
 */
-function multMatrix(A,H){
+export function multMatrix(A,H){
 	var M = [[0,0,0],[0,0,0],[0,0,0]];
 	var ic = 0;
 	var mc = 0;
@@ -253,7 +279,7 @@ function multMatrix(A,H){
 	SHAPE * NUMBER
 */
 
-function Ax(A,x){
+export function Ax(A,x){
 	var i = 0;
 	for(i=0;i<A.length;i++){
 		var j=0;
@@ -269,7 +295,7 @@ function Ax(A,x){
 	VECTOR * NUMBER
 	
 */
-function Vx(v,x){
+export function Vx(v,x){
 	var j=0;
 	var w = new Array();
 	for(j=0;j<v.length;j++){
@@ -283,7 +309,7 @@ function Vx(v,x){
 	A*b (Matrix * vector)
 	
 */
-function Ab(A,v){
+export function Ab(A,v){
 	var ve = [0,0,0];
 	var ic = 0;
 	for(ic=0;ic<3;ic++){
@@ -299,7 +325,7 @@ function Ab(A,v){
 	NODES * MATRIX
 
 */
-function nodesXm(nodes,A){
+export function nodesXm(nodes,A){
 	var i = 0;
 	var newNodes = new Array(); 
 	for(i=0;i<nodes.length;i++){
@@ -313,7 +339,7 @@ function nodesXm(nodes,A){
 	Only for 3x3 matrices
 	
 */
-function xyRotMatrix(a){
+export function xyRotMatrix(a){
 	return [[Math.cos(a), Math.sin(a), 0],[-Math.sin(a), Math.cos(a), 0],[0,0,1]];
 }
 
@@ -322,7 +348,7 @@ function xyRotMatrix(a){
 	Rounds to a given amount of decimals
 
 */
-function roundTo(nr, dec){
+export function roundTo(nr, dec){
 	if(Math.abs(nr) < 1/Math.pow(10,dec)){
 		return 0;
 	}
@@ -356,7 +382,7 @@ function roundTo(nr, dec){
  * 𝑥=𝑜1+𝑑1𝑡,𝑦=𝑜2+𝑑2𝑡𝑧=𝑜3+𝑑3𝑡
  */
 
-function planeIntersection(v1, v2, plane) {
+export function planeIntersection(v1, v2, plane) {
   var d = unitVector(v1, v2);
   var o = v1;
   var a = getOrigo(plane);
@@ -375,7 +401,7 @@ function planeIntersection(v1, v2, plane) {
  * @param {*} p1 point 1
  * @param {*} p2 point 2
  */
-function unitVector(p1, p2) {
+export function unitVector(p1, p2) {
   var v = uToV(p1, p2);
   var length = vDist(p1, p2);
   v[0] = v[0]/length;
@@ -391,7 +417,7 @@ function unitVector(p1, p2) {
  * @param {end vector} v 
  * @returns the middle point u -> v/2
  */
-function middle(u, v){
+export function middle(u, v){
     var uv = unitVector(u, v);
     var len = vDist(u, v);
     return addV(u , Vx(uv, len/2));
@@ -402,16 +428,45 @@ function middle(u, v){
  * @param {signed number} n 
  * @returns positive (1) or negative (-1) 
  */
-function sign(n) {
+export function sign(n) {
   if(n < 0){
     return -1;
   }
   return 1;
 }
 
-function randomSigned(){
+export function randomSigned(){
   if(Math.random() > 0.49){
     return -Math.random();
   }
   return Math.random();
+}
+
+/**
+ * Creates and returns a copy of the given array.
+ * @param {Array} array - The array to copy.
+ * @returns {Array} - A new array that is a copy of the input array.
+ */
+export function copyArray(array) {
+    return array.slice();
+}
+
+/*
+	GET ORIGIN
+	returns the center of a given group of nodes
+
+*/
+export function getOrigo(nodes){
+	var x=0;
+	var y=0;
+	var z=0;
+	var len = nodes.length; // line 2 or triangle 3
+	var i=0;
+  //console.log("getOrigo: "+ len); is 4
+	for(i=0;i<len;i++){
+		x+=nodes[i][0];
+		y+=nodes[i][1];
+		z+=nodes[i][2];
+	}
+	return [x/len,y/len,z/len];
 }

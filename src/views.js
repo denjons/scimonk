@@ -1,5 +1,6 @@
+// import GIF from 'gif.js';
 
-class ScimonkView {
+export class ScimonkView {
   imageData;
   width = 0;
   height = 0;
@@ -51,27 +52,22 @@ class ScimonkView {
 }
 
 
-class ScimonkGifView {
+export class ScimonkGifView {
   imageData;
   width = 0;
   height = 0;
   canvas;
   ctx;
-  gif;
   backgroundColour = [200, 150, 150, 255];
+  frames = [];
+  gif = null;
 
-  constructor(canvas, gifOptions = { workers: 2, quality: 10 }) {
+  constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.width = canvas.width;
     this.height = canvas.height;
     this.imageData = this.ctx.createImageData(this.width, this.height);
-    this.gif = new GIF({
-      workers: gifOptions.workers,
-      quality: gifOptions.quality,
-      width: this.width,
-      height: this.height,
-    });
   }
 
   fill(colour) {
@@ -83,6 +79,7 @@ class ScimonkGifView {
     }
   }
 
+  // Resets the view to the background colour
   reset() {
     this.fill(this.backgroundColour);
   }
@@ -95,23 +92,52 @@ class ScimonkGifView {
     this.imageData.data[index + 3] = a;
   }
 
+  // updates the view with the recent changes
   update() {
     this.ctx.putImageData(this.imageData, 0, 0); // at coords 0,0
-    this.gif.addFrame(this.ctx, { copy: true });
+    // Store the current frame
+    this.frames.push(this.ctx.getImageData(0, 0, this.width, this.height));
   }
 
+  // Creates the gif when all images have been added
   finish(filename = "output.gif") {
-    this.gif.on("finished", function (blob) {
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = filename;
-      link.click();
+    if (this.frames.length === 0) {
+      console.warn("No frames to create GIF from");
+      return;
+    }
+
+    // Create a new GIF encoder
+    this.gif = new GIF({
+      workers: 2,
+      quality: 10,
+      width: this.width,
+      height: this.height,
+      workerScript: 'gif.worker.js'
     });
+
+    // Add each frame to the GIF
+    this.frames.forEach(frame => {
+      this.gif.addFrame(frame, { delay: 100 }); // 50ms delay between frames
+    });
+
+    // When the GIF is finished, download it
+    this.gif.on('finished', (blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    // Render the GIF
     this.gif.render();
   }
 }
 
-class ScimonkTextView {
+export class ScimonkTextView {
   imageData;
   width = 0;
   height = 0;
@@ -141,9 +167,4 @@ class ScimonkTextView {
   }
 
 }
-
-
-
-
-
 

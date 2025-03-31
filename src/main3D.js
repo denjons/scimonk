@@ -6,11 +6,13 @@
 
 */
 
+import { Geometry } from './geometry.js';
+import { 
+  addV, Vx, vLen, planeIntersection, planeNormal, uToV,
+  Ab, vectorAngle, rotateNode
+} from './graph.js';
 
-
-
-
-class DrawModes{
+export class DrawModes{
   fill = true;
   lines = true;
   shadow = false;
@@ -47,7 +49,7 @@ class DrawModes{
 
 }
 
-class SciMonk {
+export class SciMonk {
   Depth=1;
   Width=1;
   Height=1;
@@ -197,24 +199,6 @@ class SciMonk {
     //this.fillTriangle2(nodes,triangle.origin(),colour,id);
   }
 
-  fillTriangle2(triangle, z, colour, id){
-    const points = getPointsInTriangle(triangle);
-    for(let i = 0; i < points.length; i ++){
-      var x = points[i][0];
-      var y = points[i][1];
-      var Zindex = y*(this.CanvasWidth*3) + x*3;
-      if(this.it > this.depthMap[ Zindex + 1] || this.depthMap[Zindex] >= z){
-          this.depthMap[Zindex]=z;
-          this.depthMap[Zindex + 1]=this.it;
-          this.depthMap[Zindex + 2]=id;
-          this.setPixel(
-          x, 
-          y, 
-          colour[0],colour[1],colour[2],colour[3]);
-      }
-    }
-
-  }
 
   fillTriangle(plane,colour,id){
     var a = [plane[1][0]-plane[0][0],plane[1][1]-plane[0][1]];
@@ -298,7 +282,7 @@ class SciMonk {
 
   */
   uNode(cord){
-    return addV(this.rotateNode(cord,[this.xRzRot,this.yRzRot,this.xRyRot],[0,0,0]),
+    return addV(rotateNode(cord,[this.xRzRot,this.yRzRot,this.xRyRot],[0,0,0]),
           [this.xMove,this.yMove,this.zMove]);
   }
 
@@ -311,32 +295,7 @@ class SciMonk {
     return uPlane;
   }
 
-  /*
-    ROTATION
-  */
-  rotateNode(node,rad,origo){
-    return this.rotateNodeT(
-          this.rotateNodeT(
-            this.rotateNodeT(node,origo,this.XZrot(rad[0])),
-              origo,this.YZrot(rad[1])),
-            origo,this.XYrot(rad[2]));
-  }
 
-  rotateNodeT(node,origo,matrix){
-    return addV(origo,Ab(matrix,uToV(origo,node)));
-  }
-
-  XZrot(a){
-    return [[Math.cos(a),0,-Math.sin(a)],[0,1,0],[Math.sin(a),0,Math.cos(a)]];
-  }
-
-  YZrot(a){
-    return [[1,0,0],[0,Math.cos(a),Math.sin(a)],[0,-Math.sin(a),Math.cos(a)]];
-  }
-
-  XYrot(a){
-    return [[Math.cos(a),Math.sin(a),0],[-Math.sin(a),Math.cos(a),0],[0,0,1]];
-  }
 
   /*
 	TRANSLATE
@@ -562,7 +521,7 @@ class SciMonk {
 
   writeSTL(){
     var triangles = new Array();
-    for(let model of sciMonk.model.geometries) {
+    for(let model of this.model.geometries) {
       triangles = triangles.concat(model.triangles);
     }
 
@@ -643,75 +602,5 @@ class SciMonk {
 
 //var sciMonk = new SciMonk();
 
-/**
- * Check if a point is inside a triangle using barycentric coordinates.
- * @param {number[]} p - The point [x, y].
- * @param {number[]} v0 - First vertex of the triangle [x, y].
- * @param {number[]} v1 - Second vertex of the triangle [x, y].
- * @param {number[]} v2 - Third vertex of the triangle [x, y].
- * @returns {boolean} - True if the point is inside the triangle, false otherwise.
- */
-function isPointInTriangle(p, v0, v1, v2) {
-    const [x, y] = p;
-    const [x0, y0] = v0;
-    const [x1, y1] = v1;
-    const [x2, y2] = v2;
 
-    // Compute vectors
-    const v0v1 = [x1 - x0, y1 - y0];
-    const v0v2 = [x2 - x0, y2 - y0];
-    const v0p = [x - x0, y - y0];
-
-    // Compute dot products
-    const dot00 = v0v2[0] * v0v2[0] + v0v2[1] * v0v2[1];
-    const dot01 = v0v2[0] * v0v1[0] + v0v2[1] * v0v1[1];
-    const dot02 = v0v2[0] * v0p[0] + v0v2[1] * v0p[1];
-    const dot11 = v0v1[0] * v0v1[0] + v0v1[1] * v0v1[1];
-    const dot12 = v0v1[0] * v0p[0] + v0v1[1] * v0p[1];
-
-    // Compute barycentric coordinates
-    const invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-    const u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-    const v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
-    // Check if point is in triangle
-    return u >= 0 && v >= 0 && u + v <= 1;
-}
-
-/**
- * Get all discrete points within a triangle.
- * @param {number[][]} triangle - An array of three vertices, each a 2D point [x, y].
- * @returns {number[][]} - A 2D array of all discrete points inside the triangle.
- */
-function getPointsInTriangle(triangle) {
-    const [v0, v1, v2] = triangle;
-
-    // Determine the bounding box of the triangle
-    const minX = Math.min(v0[0], v1[0], v2[0]);
-    const maxX = Math.max(v0[0], v1[0], v2[0]);
-    const minY = Math.min(v0[1], v1[1], v2[1]);
-    const maxY = Math.max(v0[1], v1[1], v2[1]);
-
-    const points = [];
-
-    // Iterate through all points in the bounding box
-    for (let x = Math.ceil(minX); x <= Math.floor(maxX); x++) {
-        for (let y = Math.ceil(minY); y <= Math.floor(maxY); y++) {
-            if (isPointInTriangle([x, y], v0, v1, v2)) {
-                points.push([x, y]);
-            }
-        }
-    }
-
-    return points;
-}
-
-/**
- * Creates and returns a copy of the given array.
- * @param {Array} array - The array to copy.
- * @returns {Array} - A new array that is a copy of the input array.
- */
-function copyArray(array) {
-    return array.slice();
-}
 
