@@ -1,6 +1,6 @@
-import { Geometry } from './geometry.js';
-import { gridToTriangles } from './geometry.js';
-
+import { Geometry } from '../geometry.js';
+import { gridToTriangles } from '../geometry.js';
+import { Vx } from '../graph.js';
 function createBag(x, y, z, w, h, d, colour, id){
   w=w/2;
   h=h/2;
@@ -29,5 +29,6 @@ function createBag(x, y, z, w, h, d, colour, id){
 
   return Geometry.custom(array, colour, id);
 }
+
 
 export { createBag };

@@ -62,12 +62,13 @@ export class ScimonkGifView {
   frames = [];
   gif = null;
 
-  constructor(canvas) {
+  constructor(canvas, delay = 100) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.width = canvas.width;
     this.height = canvas.height;
     this.imageData = this.ctx.createImageData(this.width, this.height);
+    this.delay = delay;
   }
 
   fill(colour) {
@@ -117,7 +118,7 @@ export class ScimonkGifView {
 
     // Add each frame to the GIF
     this.frames.forEach(frame => {
-      this.gif.addFrame(frame, { delay: 100 }); // 50ms delay between frames
+      this.gif.addFrame(frame, { delay: this.delay }); // 50ms delay between frames
     });
 
     // When the GIF is finished, download it

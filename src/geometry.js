@@ -324,6 +324,14 @@ export class Geometry {
    * Factory methods
    */
 
+  static merge(geometries, colour, id){
+    const triangles = new Array();
+    for(let geometry of geometries){
+      triangles.push(...geometry.triangles);
+    }
+    return new Geometry(triangles, 'custom', colour, id);
+  }
+
   static box(pos, size, colour, id) {
     const g = new Geometry(boxTriangles(pos[0], pos[1], pos[2], size[0], size[1],size[2]), 'box' , colour, id);
     g.computeNormals();

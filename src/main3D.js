@@ -467,9 +467,9 @@ export class SciMonk {
     else
     a = vectorAngle(Vx(nv,-1),lv);
     
-    return [Math.max(colour[0]-55*Math.cos(a),1), 
-            Math.max(colour[1]-55*Math.cos(a),1),
-            Math.max(colour[2]-55*Math.cos(a),1),
+    return [Math.max(colour[0]-100*Math.cos(a),1), 
+            Math.max(colour[1]-100*Math.cos(a),1),
+            Math.max(colour[2]-100*Math.cos(a),1),
             200+55*Math.cos(a)];
   }
 

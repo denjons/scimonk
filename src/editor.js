@@ -1,13 +1,13 @@
 import { SciMonk, DrawModes } from './main3D.js';
-import { ScimonkGifView } from './views.js';
-import { createBag } from './items.js';
+import { ScimonkGifView, ScimonkView} from './views.js';
+import { BroccoliFactory } from './things/broccoli.js';
+import { createBag } from './things/bag.js';
 
-// Global variables
 let sciMonk;
-let bag;
+let drawModes;
 let view;
 let running = true;
-
+let bag;
 // File handling functions
 function dropEventHandler(event) {
   console.log("dropped file" + event);
@@ -97,17 +97,11 @@ function modelToSTL() {
   a.click();
 }
 
-function updateShapeList() {
-  // Implementation needed
-}
 
-
-
-// Animation functions
-function run() {
+function runBag() {
   const rott = [Math.random()/10, Math.random()/10, Math.random()/10];
   bag.rotate(rott);        
-  var newBag = bag.copy();
+  var newBag = bag.copy();  
   newBag.rotate(rott);
   newBag.shakeTriangles(2);
   sciMonk.add(newBag);
@@ -115,18 +109,16 @@ function run() {
   bag.shakeTriangles(7);
   sciMonk.rotate(rott);
   sciMonk.render();
- 
+
   if(running) {
-    setTimeout(run, 25);
+    setTimeout(runBag, 25);
   } else {
     view.finish();
   }
 }
 
-
-export function init(){
-  // Initialize the editor
-  view = new ScimonkGifView(document.getElementById("canvas"));
+function initBag(){
+  view = new ScimonkGifView(document.getElementById("canvas"), 150);
   view.fill([200,150,150,255]);
   const drawModes = new DrawModes(true, true);
   drawModes.overrideLineColour([3,3,3,255]);
@@ -140,9 +132,42 @@ export function init(){
   sciMonk.add(bag);
 
   sciMonk.render();
-  run();
-
+  runBag();
 }
+
+
+// Broccoli functions
+function initBroccoli(){
+  view = new ScimonkGifView(document.getElementById("canvas"), 75);
+  view.fill([200,150,150,255]);
+  drawModes = new DrawModes(true, true);
+  drawModes.overrideLineColour([3,3,3,255]);
+  sciMonk = new SciMonk(view, drawModes);
+  const broccoliFactory = new BroccoliFactory(50, 20, 6, [50,200,50,255], 1);
+  const broccoli = broccoliFactory.createBroccoli([0,0,0], [100,100,100]);
+  sciMonk.add(broccoli);
+  sciMonk.render();
+  running = true;
+  runBroccoli();
+}
+
+function runBroccoli(){
+  sciMonk.render();
+  sciMonk.rotate([0.05,0,0]);
+  drawModes.overrideFillColour([255*Math.random(),255*Math.random(),255*Math.random(),255]);
+  if(running) {
+    setTimeout(runBroccoli, 25);
+  } else {
+    view.finish();
+  }
+}
+
+
+export function init(){
+  //initBag();
+  initBroccoli();
+}
+
 
 // Expose functions to global scope for HTML event handlers
 window.dropEventHandler = dropEventHandler;
