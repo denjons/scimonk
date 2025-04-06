@@ -1,8 +1,13 @@
 import { 
   addV, Vx, vLen, unitVector, 
   scale, sign, copyArray, middle,
-  getOrigo, rotateNode
+  getOrigo
 } from './graph.js';
+
+import {
+  rotateNode
+} from './v2/graph.js';
+
 
 // Helper functions
 function boxTriangles(x, y, z, w, h, d) {
@@ -25,6 +30,8 @@ function boxTriangles(x, y, z, w, h, d) {
   squareToTriangles([[x-w,y+h,z-d],[x-w,y+h,z+d],[x+w,y+h,z+d],[x+w,y+h,z-d]], array);
   return array;
 }
+
+
 
 function sphereCoordinate(pos, size, i, j, sn, sr) {
   var end = (2*Math.PI)/sr*(j-1);
@@ -201,12 +208,15 @@ export class Triangle {
 
 
 export class Geometry {
-
   constructor(triangles, type, colour, id) {
     this.triangles = triangles;
     this.type = type;
     this.colour = colour;
     this.id = id;
+  }
+
+  setDrawModes(drawModes){
+    this.drawModes = drawModes;
   }
 
   origin(){
@@ -320,6 +330,11 @@ export class Geometry {
     }
   }
 
+  copy(){
+    const copiedTriangles = this.triangles.map(triangle => triangle.copy());
+    return new Geometry(copiedTriangles, this.type, this.colour, this.id);
+  }
+
   /**
    * Factory methods
    */
@@ -389,6 +404,65 @@ export class Geometry {
 
   static custom(triangles, colour, id){
     const g = new Geometry(triangles, 'custom', colour, id);
+    g.computeNormals();
+    return g;
+  }
+
+  static gridBox(pos, size, levels, colour, id) {
+    const triangles = [];
+    const w = size[0]/2;
+    const h = size[1]/2;
+    const d = size[2]/2;
+
+    // front face
+    gridToTriangles([
+      [pos[0]-w, pos[1]-h, pos[2]-d],
+      [pos[0]-w, pos[1]+h, pos[2]-d],
+      [pos[0]+w, pos[1]+h, pos[2]-d],
+      [pos[0]+w, pos[1]-h, pos[2]-d]
+    ], triangles, levels);
+
+    // back face
+    gridToTriangles([
+      [pos[0]-w, pos[1]-h, pos[2]+d],
+      [pos[0]-w, pos[1]+h, pos[2]+d],
+      [pos[0]+w, pos[1]+h, pos[2]+d],
+      [pos[0]+w, pos[1]-h, pos[2]+d]
+    ], triangles, levels);
+
+    // left face
+    gridToTriangles([
+      [pos[0]-w, pos[1]-h, pos[2]-d],
+      [pos[0]-w, pos[1]+h, pos[2]-d],
+      [pos[0]-w, pos[1]+h, pos[2]+d],
+      [pos[0]-w, pos[1]-h, pos[2]+d]
+    ], triangles, levels);
+
+    // right face
+    gridToTriangles([
+      [pos[0]+w, pos[1]-h, pos[2]-d],
+      [pos[0]+w, pos[1]+h, pos[2]-d],
+      [pos[0]+w, pos[1]+h, pos[2]+d],
+      [pos[0]+w, pos[1]-h, pos[2]+d]
+    ], triangles, levels);
+
+    // top face
+    gridToTriangles([
+      [pos[0]-w, pos[1]+h, pos[2]-d],
+      [pos[0]-w, pos[1]+h, pos[2]+d],
+      [pos[0]+w, pos[1]+h, pos[2]+d],
+      [pos[0]+w, pos[1]+h, pos[2]-d]
+    ], triangles, levels);
+
+    // bottom face
+    gridToTriangles([
+      [pos[0]-w, pos[1]-h, pos[2]-d],
+      [pos[0]-w, pos[1]-h, pos[2]+d],
+      [pos[0]+w, pos[1]-h, pos[2]+d],
+      [pos[0]+w, pos[1]-h, pos[2]-d]
+    ], triangles, levels);
+
+    const g = new Geometry(triangles, 'gridBox', colour, id);
     g.computeNormals();
     return g;
   }

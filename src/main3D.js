@@ -11,43 +11,7 @@ import {
   addV, Vx, vLen, planeIntersection, planeNormal, uToV,
   Ab, vectorAngle, rotateNode
 } from './graph.js';
-
-export class DrawModes{
-  fill = true;
-  lines = true;
-  shadow = false;
-  shadowVector = [[1,0,0],[0,0,1]]; // shadow plane
-  shadowTranslate = [0,-200,0]; // plane translation
-  shadowColour = [50,50,50,255];
-  lineColour; 
-  fillColour;
-  skipBackFacingTriangles = true;
-
-  constructor(fill, lines) {
-    this.fill = fill;
-    this.lines = lines;
-  }
-
-  setShadow(shadow, vector, translate, colour){
-    this.shadow = shadow;
-    this.shadowVector = vector;
-    this.shadowTranslate = translate;
-    this.shadowColour = colour;
-  }
-
-  overrideLineColour(colour){
-    this.lineColour = colour;
-  }
-
-  overrideFillColour(colour){
-    this.fillColour = colour;
-  }
-
-  overrideSkipBackFacingTriangles(skip){
-    this.skipBackFacingTriangles = skip;
-  }
-
-}
+import { DrawModes } from './modes.js';
 
 export class SciMonk {
   Depth=1;
@@ -128,20 +92,16 @@ export class SciMonk {
     this.view.reset();
     for(let geometry of this.model.geometries) {
       for(let triangle of geometry.triangles) {
-
         var point;
         if(this.drawModes.skipBackFacingTriangles){
-          point = this.normalIntersectsPlane(triangle, 4000, 1000, 4000);
+          point = this.normalIntersectsPlane(triangle, 4000, -1000, 10000);
         }
-        if(point){
-           //this.fill(triangle, geometry.colour, geometry.id);
-           //this.nodeVector(triangle.normalVector[0], triangle.normalVector[1],[100,50,50,250],false);
-          //this.cross(point, 20, [255,1,1,255]);
-        }else{
-          if(this.drawModes.fill){
-            this.fill(triangle, this.drawModes.fillColour ? this.drawModes.fillColour : geometry.colour, geometry.id);
+        if(!point){
+          if(geometry.drawModes ? geometry.drawModes.fill : this.drawModes.fill){
+            var colour = this.setAlpha(triangle, this.drawModes.fillColour ? this.drawModes.fillColour : geometry.colour);
+            this.fill(triangle, colour, geometry.id);
           }
-          if(this.drawModes.lines){
+          if(geometry.drawModes ? geometry.drawModes.lines : this.drawModes.lines){
             this.lines(triangle.points, this.drawModes.lineColour ? this.drawModes.lineColour : geometry.colour, geometry.id);
           }
           if(this.drawModes.shadow){
@@ -149,6 +109,10 @@ export class SciMonk {
             shadow.translate1(this.drawModes.shadowTranslate);
             this.fill(shadow,this.drawModes.shadowColour,0);
           }
+        }else{
+          //this.fill(triangle, geometry.colour, geometry.id);
+          //this.nodeVector(triangle.normalVector[0], triangle.normalVector[1],[100,50,50,250],false);
+          //this.cross(point, 20, [255,1,1,255]);
         }
       }
     }
@@ -193,21 +157,17 @@ export class SciMonk {
   } 
 
   fill(triangle, colour, id){
-    colour = this.setAlpha(triangle, colour);
-    var nodes = this.multipleNopdes(triangle.points); 
-    this.fillTriangle(nodes,colour,id);
-    //this.fillTriangle2(nodes,triangle.origin(),colour,id);
-  }
+    var points2D = this.convertTo2D(triangle.points); 
+
+    var a = [points2D[1][0]-points2D[0][0],points2D[1][1]-points2D[0][1]];
+    var az = points2D[1][2]-points2D[0][2];
+
+    var b = [points2D[0][0]-points2D[2][0],points2D[0][1]-points2D[2][1]];
+    var bz = points2D[0][2]-points2D[2][2];
 
 
-  fillTriangle(plane,colour,id){
-    var a = [plane[1][0]-plane[0][0],plane[1][1]-plane[0][1]];
-    var az = plane[1][2]-plane[0][2];
-
-    var b = [plane[0][0]-plane[2][0],plane[0][1]-plane[2][1]];
-    var bz = plane[0][2]-plane[2][2];
-
-    this.lineFillTriangle(plane[2],b,bz,plane[0],a,az,colour,id);
+    this.lineFillTriangle2D(points2D[2],b,bz,points2D[0],a,az,colour,id);
+    
   }
 
   lines=function(nodes, colour, alpha){
@@ -220,7 +180,7 @@ export class SciMonk {
     }
   }
 
-  lineFillTriangle(u,ux,uxZ,v,vx,vxZ,colour,id){
+  lineFillTriangle2D(u,ux,uxZ,v,vx,vxZ,colour,id){
     var i = 0;
     var uxLen = vLen(ux)*1.5;
     for(i=0;i<uxLen;i++){
@@ -231,7 +191,7 @@ export class SciMonk {
       v[1] + vx[1],
       u[2] + uxZ/uxLen*i,
       v[2] + vxZ,
-      colour,id);//-
+      colour,id);
     }
   }
   
@@ -244,17 +204,14 @@ export class SciMonk {
         cords[2]];
   }
 
-  /*
-    NODES
 
-  */
-  multipleNopdes(nodes){
+  convertTo2D(points){
     var i =0;
-    var newNodes = new Array();
-    for(i=0;i<nodes.length;i++){
-      newNodes[i] = this.to2D(nodes[i]);
+    var points2D = new Array();
+    for(i=0;i<points.length;i++){
+      points2D[i] = this.to2D(points[i]);
     }
-    return newNodes;
+    return points2D;
   }
 
   nodeVector(node1, node2, colour, alpha){
@@ -271,6 +228,7 @@ export class SciMonk {
       }
       var as = this.to2D(node1);
       var bs = this.to2D(node2);
+
       this.drawLine(as[0],bs[0],as[1],bs[1],as[2],bs[2],colour);
     }
   }
@@ -294,14 +252,6 @@ export class SciMonk {
     }
     return uPlane;
   }
-
-
-
-  /*
-	TRANSLATE
-
-  */
-
 
   /**
    * PERSPECTIVE
@@ -478,30 +428,6 @@ export class SciMonk {
     this.nodeVector([node[0]-w,node[1],node[2]],[node[0]+w,node[1],node[2]], colour, false);
     this.nodeVector([node[0],node[1]-w,node[2]],[node[0],node[1]+w,node[2]], colour, false);
     this.nodeVector([node[0],node[1],node[2]-w],[node[0],node[1],node[2]+w], colour, false);
-  }
-
-  castShadow(nodes){
-    return translateNodes(nodesXm(nodes,[[1,0,0],[0,0,0],[0,0,1]]),this.drawModes.shadowVector);
-  }
-
-  objectsToImages(objects){
-    this.reset();
-    var old = this.draw;
-    var i = 0;
-    var imgs = new Array();
-    for(i = 0;i<objects.length;i++){
-      this.draw = function(){
-        batchColourMapShapes(objects[i].shapes);
-      }
-      this.update=true;
-      this.render();
-      imgs[i] = document.createElement("img");
-      imgs[i].src = this.Canvas.toDataURL("image/png");
-    }
-    this.draw = old;
-    this.update=true;
-    return imgs;
-
   }
 
 

@@ -1,13 +1,17 @@
-import { SciMonk, DrawModes } from './main3D.js';
+import { SciMonk } from './main3D.js';
 import { ScimonkGifView, ScimonkView} from './views.js';
+import { DrawModes } from './modes.js';
 import { BroccoliFactory } from './things/broccoli.js';
 import { createBag } from './things/bag.js';
+import { Geometry } from './geometry.js';
 
 let sciMonk;
 let drawModes;
 let view;
 let running = true;
 let bag;
+let box;
+let sphere;
 // File handling functions
 function dropEventHandler(event) {
   console.log("dropped file" + event);
@@ -97,6 +101,9 @@ function modelToSTL() {
   a.click();
 }
 
+/*
+  BAG
+*/
 
 function runBag() {
   const rott = [Math.random()/10, Math.random()/10, Math.random()/10];
@@ -110,6 +117,7 @@ function runBag() {
   sciMonk.rotate(rott);
   sciMonk.render();
 
+
   if(running) {
     setTimeout(runBag, 25);
   } else {
@@ -118,7 +126,7 @@ function runBag() {
 }
 
 function initBag(){
-  view = new ScimonkGifView(document.getElementById("canvas"), 150);
+  view = new ScimonkView(document.getElementById("canvas"), 150);
   view.fill([200,150,150,255]);
   const drawModes = new DrawModes(true, true);
   drawModes.overrideLineColour([3,3,3,255]);
@@ -135,26 +143,43 @@ function initBag(){
   runBag();
 }
 
+/*
+  BROCCOLI
+*/
 
-// Broccoli functions
 function initBroccoli(){
-  view = new ScimonkGifView(document.getElementById("canvas"), 75);
+  view = new ScimonkView(document.getElementById("canvas"), 75);
   view.fill([200,150,150,255]);
-  drawModes = new DrawModes(true, true);
+  drawModes = new DrawModes(true, false);
   drawModes.overrideLineColour([3,3,3,255]);
   sciMonk = new SciMonk(view, drawModes);
   const broccoliFactory = new BroccoliFactory(50, 20, 6, [50,200,50,255], 1);
-  const broccoli = broccoliFactory.createBroccoli([0,0,0], [100,100,100]);
+  const broccoli = broccoliFactory.createBroccoli([0,0,0], [200,200,200]);
+  const broccoliCopy = broccoli.copy();
+  broccoliCopy.setDrawModes(new DrawModes(false, true));
+  broccoliCopy.scale([1.01,1.01,1.01]);
   sciMonk.add(broccoli);
+  sciMonk.add(broccoliCopy);
   sciMonk.render();
   running = true;
   runBroccoli();
 }
 
 function runBroccoli(){
+  let startTime = performance.now();
   sciMonk.render();
-  sciMonk.rotate([0.05,0,0]);
+  let endTime = performance.now();
+  let timeTaken = endTime - startTime;
+  console.log(`Render time: ${timeTaken} milliseconds`);
+
+  let startTime2 = performance.now();
+  sciMonk.rotate([-0.05,0,0]);
+  let endTime2 = performance.now();
+  let timeTaken2 = endTime2 - startTime2;
+  console.log(`Rotate time: ${timeTaken2} milliseconds`);
+
   drawModes.overrideFillColour([255*Math.random(),255*Math.random(),255*Math.random(),255]);
+
   if(running) {
     setTimeout(runBroccoli, 25);
   } else {
@@ -162,10 +187,88 @@ function runBroccoli(){
   }
 }
 
+/*
+  MAIN
+*/
+
+function initBox(){
+  view = new ScimonkView(document.getElementById("canvas"), 75);
+  view.fill([200,150,150,255]);
+  drawModes = new DrawModes(true, true);
+  sciMonk = new SciMonk(view, drawModes);
+  box = Geometry.gridBox([0,0,0], [100,100,100], 3, [200,200,200,255], 1);
+  sciMonk.add(box);
+  sciMonk.rotate([0.05,0.05,0.05]);
+  sciMonk.render();
+  running = true;
+  runBox();
+}
+
+function runBox(){
+  sciMonk.rotate([0.05,0,0]);
+  sciMonk.render();
+  if(running) {
+    setTimeout(runBox, 25);
+  }
+}
+
+function initBox2(){
+  view = new ScimonkGifView(document.getElementById("canvas"), 75);
+  view.fill([200,150,150,255]);
+  drawModes = new DrawModes(true, true);
+  drawModes.overrideLineColour([3,3,3,255]);
+  sciMonk = new SciMonk(view, drawModes);
+  const box = Geometry.box([0,0,0], [200,200,200], [200,200,200,255], 1);
+  sciMonk.add(box);
+  sciMonk.render();
+  running = true;
+  runBox2();
+}
+
+function runBox2(){
+  sciMonk.render();
+  sciMonk.rotate([0.05,0,0]);
+  if(running) {
+    setTimeout(runBox2, 25);
+  } else {
+    view.finish();
+  }
+}
+
+function initSphere(){
+  view = new ScimonkView(document.getElementById("canvas"), 75);
+  view.fill([200,150,150,255]);
+  drawModes = new DrawModes(true, false);
+  drawModes.overrideLineColour([3,3,3,255]);
+  drawModes.overrideFillColour([170,170,170,255]);
+  sciMonk = new SciMonk(view, drawModes);
+  sphere = Geometry.sphere([0,0,0], [400,400,400], 50, 50, [200,200,200,255], 1);
+  sciMonk.add(sphere);
+  sciMonk.render();
+  running = true;
+  runSphere();
+}
+
+function runSphere(){
+  //box = box.copy();
+  //box.rotate(rott);
+ // sciMonk.add(box);
+  //sphere.shakeTriangles(2);
+  sciMonk.rotate([0.05,0,0]);
+  sciMonk.render();
+  if(running) {
+    setTimeout(runSphere, 25);
+  }
+}
+
+
 
 export function init(){
   //initBag();
   initBroccoli();
+  //initBox();
+  //initBox2();
+  //initSphere();
 }
 
 
