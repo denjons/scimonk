@@ -1,4 +1,6 @@
-// import GIF from 'gif.js';
+import { 
+  addV, Vx, vLen, uToV,
+} from './graph.js';
 
 export class ScimonkView {
   imageData;
@@ -7,16 +9,22 @@ export class ScimonkView {
   canvas;
   ctx;
   backgroundColour = [200,150,150,255];
+  it = 1;
+  undefinedShapeId = -1;
 
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.width = canvas.width;
     this.height = canvas.height;
-    this.imageData = this.ctx.createImageData(this.width, this.height); 
+    this.Depth = this.width;
+    this.imageData = this.ctx.createImageData(this.width, this.height);
+    this.data = this.imageData.data;
+    this.depthMap = new Float32Array(this.width*this.height*3);
+    this.iniDepthMap();
   }
 
-  fill(colur) {
+  resetFill(colur) {
     for (let i = 0; i < this.imageData.data.length; i += 4) {
       this.imageData.data[i] = colur[0];
       this.imageData.data[i + 1] = colur[1];
@@ -27,27 +35,228 @@ export class ScimonkView {
 
   // Resets the image to the background colour
   reset(){
-    this.fill(this.backgroundColour);
+    this.resetFill(this.backgroundColour);
     //this.imageData = this.ctx.createImageData(this.width, this.height); 
-  }
-
-  setPixel( x, y, r, g, b, a) {
-    const index = (x + y * this.imageData.width) * 4;
-    this.imageData.data[index+0] = r;
-    this.imageData.data[index+1] = g;
-    this.imageData.data[index+2] = b;
-    this.imageData.data[index+3] = a;
   }
 
   // updates the image with the recent changes
   update(){
     this.ctx.putImageData(this.imageData, 0, 0); // at coords 0,0
+    this.it++;
   }
 
   // clears the image
   finish(){
     // 
   }
+
+  iniDepthMap(){
+    var i=0;
+    var d = -this.Depth/2;
+    for(i=0;i<this.width*this.height*3;i+=3){
+      this.depthMap[i] = d;
+      this.depthMap[i+1] = 0;
+      this.depthMap[i+2] = this.undefinedShapeId; // depth, update iteration, shape id
+    }
+  }
+
+  points2D = [[0,0,0],[0,0,0],[0,0,0]];
+  ux = new Float32Array(3);
+  vx = new Float32Array(3);
+  uxZ = 0;
+  vxZ = 0;
+
+  fill(triangle, colour, id){
+
+    //this.points2D = this.convertTo2D(triangle.points);
+    // convert points to 2D in place
+    this.points2D[0][0] = this.zRx(triangle.points[0][0],triangle.points[0][2])|0;
+    this.points2D[0][1] = this.zRy(triangle.points[0][1],triangle.points[0][2])|0;
+    this.points2D[0][2] = triangle.points[0][2];  // Preserve z-coordinate
+    this.points2D[1][0] = this.zRx(triangle.points[1][0],triangle.points[1][2])|0;
+    this.points2D[1][1] = this.zRy(triangle.points[1][1],triangle.points[1][2])|0;
+    this.points2D[1][2] = triangle.points[1][2];  // Preserve z-coordinate
+    this.points2D[2][0] = this.zRx(triangle.points[2][0],triangle.points[2][2])|0;
+    this.points2D[2][1] = this.zRy(triangle.points[2][1],triangle.points[2][2])|0;
+    this.points2D[2][2] = triangle.points[2][2];  // Preserve z-coordinate
+
+    var u = this.points2D[2];
+    this.ux[0] = this.points2D[0][0]-this.points2D[2][0];
+    this.ux[1] = this.points2D[0][1]-this.points2D[2][1];
+    this.uxZ = triangle.points[0][2]-triangle.points[2][2];
+
+    var v = this.points2D[0];
+    this.vx[0] = this.points2D[1][0]-this.points2D[0][0];
+    this.vx[1] = this.points2D[1][1]-this.points2D[0][1];
+    this.vxZ = triangle.points[1][2]-triangle.points[0][2];
+
+    var uxLen = vLen(this.ux)*1.2;
+    for(let i=0;i<uxLen;i++){
+      this.drawLine(
+      u[0] + this.ux[0]/uxLen*i, 
+      v[0] + this.vx[0],
+      u[1] + this.ux[1]/uxLen*i,
+      v[1] + this.vx[1],
+      u[2] + this.uxZ/uxLen*i,
+      v[2] + this.vxZ,
+      colour,id);
+    }
+
+    //this.lineFillTriangle2D(this.points2D[2],b,bz,this.points2D[0],a,az,colour,id);
+  }
+
+  lu = new Float32Array(2);
+  lv = new Float32Array(2);
+  luv = new Float32Array(2);
+  lx = 0;
+  ly = 0;
+  lz = 0;
+  lZIndex = 0;
+  lIndex = 0;
+  lw = 0;
+  lZ = 0;
+
+  drawLine( x1, x2, y1, y2, z1, z2, co, id) {
+    this.lu[0] = x1;
+    this.lu[1] = y1;
+    this.lv[0] = x2;
+    this.lv[1] = y2;
+    this.luv[0] = this.lv[0] - this.lu[0];
+    this.luv[1] = this.lv[1] - this.lu[1];
+
+    // vector length
+    var len = Math.sqrt(this.luv[0]*this.luv[0] + this.luv[1]*this.luv[1])*1.2;
+    // depth test
+    this.lw = (z2-z1)/len;
+    this.lZ = this.Depth/3;
+
+    for(let t=0;t<len;t++){
+      this.lx = this.lu[0]+this.luv[0]/len*t|0;
+      this.ly = this.lu[1]+this.luv[1]/len*t|0;
+      this.lz = z1 + this.lw*t;
+      this.lZIndex = this.ly*(this.width*3) + this.lx*3;
+      if( ((this.lx > 0 && this.lx < this.width) && ( this.ly > 0 && this.ly < this.height)) && (this.lz > -this.lZ) ){
+        //Depth test
+        if(this.it > this.depthMap[ this.lZIndex + 1] || this.depthMap[this.lZIndex] >= this.lz){ 
+          this.depthMap[this.lZIndex]=this.lz;
+          this.depthMap[this.lZIndex + 1]=this.it;
+          this.depthMap[this.lZIndex + 2]=id;
+
+          this.lIndex = (this.lx + this.ly * this.width) * 4;
+          this.data[this.lIndex+0] = co[0];
+          this.data[this.lIndex+1] = co[1];
+          this.data[this.lIndex+2] = co[2];
+          this.data[this.lIndex+3] = co[3];
+        }
+      }
+    }
+  }
+
+  convertTo2D(points){
+    var i =0;
+    var points2D = new Array();
+    for(i=0;i<points.length;i++){
+      points2D[i] = this.to2D(points[i]);
+    }
+    return points2D;
+  }
+
+  zRx(x,z){
+    z = z + this.Depth/2;
+    x = x + this.width/2;       
+    return this.xOnCanvas(
+        x + ((this.Depth-z)*(this.Depth/(z)))*Math.cos(this.xAngle(this.xGraph(x),0.5))
+      );
+  }
+
+  zRy(y,z){
+    z = z + this.Depth/2; 
+    y = y + this.height/2;	
+    return this.yOnCanvas(
+        y + ((this.Depth-z)*(this.Depth/(z)))*Math.sin(this.yAngle(this.yGraph(y),0.5))
+      );
+  }
+
+  /*
+    X ON GRAPH
+
+  */
+  xGraph(x){
+    return x - (this.width/2);
+  }
+
+  /*
+    Y ON GRAPH
+
+  */
+  yGraph(y){
+    return (y - (this.height/2));
+  }
+
+  /*
+    X ANGLE
+    Returns the angle between an x coordinate and origo.
+  */
+  xAngle( x, max ){
+    x = x*max; // INFO: Spread a thinner angle over a larger area. When max is 0.5 and x is 10, x will be given as 10*0.5 = 5
+    x = (2*x)/this.width;
+    return Math.acos(x);
+  }
+
+  /*
+    Y ANGLE
+    Returns the angle between an y coordinate and origo.
+    
+  */
+  yAngle (y, max){
+    y = y*max; // Spread a thinner angle over a larger area.
+    y = (2*y)/this.height;
+    return Math.asin(y);
+  }
+
+  xOnCanvas(x){
+    return (this.width/this.width)*x;
+  }
+
+  yOnCanvas(y){
+    return this.height - (this.height/this.height)*y;
+  }
+
+  lines=function(nodes, colour, alpha){
+    if(nodes.length == 2){ // Line
+      this.nodeVector(nodes[0], nodes[1], colour, alpha);
+    }else if(nodes.length > 2){ // Triangle
+      this.nodeVector(nodes[0], nodes[1], colour, alpha);
+      this.nodeVector(nodes[1], nodes[2], colour, alpha);
+      this.nodeVector(nodes[2], nodes[0], colour, alpha);
+    }
+  }
+
+  nodeVector(node1, node2, colour, alpha){
+    var uv = uToV(node1,node2);
+    if(vLen(uv)>25){
+      this.nodeVector(node1,addV(node1,Vx(uv,0.5)),colour, alpha);
+      this.nodeVector(addV(node1,Vx(uv,0.5)),node2,colour, alpha);
+    }else{
+      if(!colour){
+        colour = [10,10,10,250];
+      }
+      if(alpha){
+        colour[3] = 250;
+      }
+      var as = this.to2D(node1);
+      var bs = this.to2D(node2);
+
+      this.drawLine(as[0],bs[0],as[1],bs[1],as[2],bs[2],colour);
+    }
+  }
+
+  to2D(cords){
+    return [this.zRx(cords[0],cords[2])|0, 
+        this.zRy(cords[1],cords[2])|0,
+        cords[2]];
+  }
+ 
 
 }
 

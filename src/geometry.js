@@ -6,7 +6,7 @@ import {
 
 import {
   rotateNode
-} from './v2/graph.js';
+} from './v2/rotate.js';
 
 
 // Helper functions

@@ -127,7 +127,6 @@ function runBag() {
 
 function initBag(){
   view = new ScimonkView(document.getElementById("canvas"), 150);
-  view.fill([200,150,150,255]);
   const drawModes = new DrawModes(true, true);
   drawModes.overrideLineColour([3,3,3,255]);
   drawModes.overrideFillColour([170,170,170,255]);
@@ -149,7 +148,6 @@ function initBag(){
 
 function initBroccoli(){
   view = new ScimonkView(document.getElementById("canvas"), 75);
-  view.fill([200,150,150,255]);
   drawModes = new DrawModes(true, false);
   drawModes.overrideLineColour([3,3,3,255]);
   sciMonk = new SciMonk(view, drawModes);
@@ -193,7 +191,6 @@ function runBroccoli(){
 
 function initBox(){
   view = new ScimonkView(document.getElementById("canvas"), 75);
-  view.fill([200,150,150,255]);
   drawModes = new DrawModes(true, true);
   sciMonk = new SciMonk(view, drawModes);
   box = Geometry.gridBox([0,0,0], [100,100,100], 3, [200,200,200,255], 1);
@@ -213,8 +210,7 @@ function runBox(){
 }
 
 function initBox2(){
-  view = new ScimonkGifView(document.getElementById("canvas"), 75);
-  view.fill([200,150,150,255]);
+  view = new ScimonkView(document.getElementById("canvas"), 75);
   drawModes = new DrawModes(true, true);
   drawModes.overrideLineColour([3,3,3,255]);
   sciMonk = new SciMonk(view, drawModes);
@@ -227,7 +223,7 @@ function initBox2(){
 
 function runBox2(){
   sciMonk.render();
-  sciMonk.rotate([0.05,0,0]);
+  sciMonk.rotate([0.05,0.05,0.05]);
   if(running) {
     setTimeout(runBox2, 25);
   } else {

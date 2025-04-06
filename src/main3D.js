@@ -8,31 +8,13 @@
 
 import { Geometry } from './geometry.js';
 import { 
-  addV, Vx, vLen, planeIntersection, planeNormal, uToV,
-  Ab, vectorAngle, rotateNode
+  addV, Vx, planeIntersection, planeNormal, uToV,
+  vectorAngle
 } from './graph.js';
 import { DrawModes } from './modes.js';
 
 export class SciMonk {
-  Depth=1;
-  Width=1;
-  Height=1;
-  CanvasHeight = 0;
-  CanvasWidth = 0;
   view;
-  isEditable = false;
-  dividePlane = true;
-  moveMax=0;
-
-  yMove = 0;
-  xMove = 0;
-  zMove = 0;
-  xRzRot = 0;
-  yRzRot = 0;
-  xRyRot = 0;
-  undefinedShapeId = -1;
-  it = 1;
-  update = true;
   drawModes = new DrawModes(true, true, false);
 
   constructor(view, drawModes) {
@@ -48,27 +30,9 @@ export class SciMonk {
       this.drawModes = drawModes;
     }
     
-    this.maxSurfaceArea = 2500;
-    this.maxLineLength = Math.sqrt(this.maxSurfaceArea);
-    
-    this.Depth = this.view.width;
-    this.Width = this.view.width;
-    this.Height = this.view.height;
-    this.CanvasHeight = this.view.height;
-    this.CanvasWidth = this.view.width;
-    this.viewPort = this.CanvasHeight/this.CanvasWidth;
-    this.lightVector = [-this.Width/2,this.Height/2,-this.Depth];
-    
-    this.background = "#FFFFFF";
-    this.lineColour = "#111111";
-    this.lineWidth = 1;
-    this.shadowColour = [50,50,50,200]
+    this.lightVector = [-this.view.width/2,this.view.height/2,-this.view.Depth];
     this.alpha = 255;
-    
-    this.depthMap = new Float32Array(this.CanvasHeight*this.CanvasWidth*3);
-    this.shadowMap = new Array();
-    this.iniDepthMap();
-    // default draw method
+
   }
 
   addGeometry(triangles, type, colour, scale, rotation) {
@@ -99,15 +63,15 @@ export class SciMonk {
         if(!point){
           if(geometry.drawModes ? geometry.drawModes.fill : this.drawModes.fill){
             var colour = this.setAlpha(triangle, this.drawModes.fillColour ? this.drawModes.fillColour : geometry.colour);
-            this.fill(triangle, colour, geometry.id);
+            this.view.fill(triangle, colour, geometry.id);
           }
           if(geometry.drawModes ? geometry.drawModes.lines : this.drawModes.lines){
-            this.lines(triangle.points, this.drawModes.lineColour ? this.drawModes.lineColour : geometry.colour, geometry.id);
+            this.view.lines(triangle.points, this.drawModes.lineColour ? this.drawModes.lineColour : geometry.colour, geometry.id);
           }
           if(this.drawModes.shadow){
             var shadow = triangle.project(this.drawModes.shadowVector[0],this.drawModes.shadowVector[1]);
             shadow.translate1(this.drawModes.shadowTranslate);
-            this.fill(shadow,this.drawModes.shadowColour,0);
+            this.view.fill(shadow,this.drawModes.shadowColour,0);
           }
         }else{
           //this.fill(triangle, geometry.colour, geometry.id);
@@ -116,7 +80,6 @@ export class SciMonk {
         }
       }
     }
-    this.it++;
     this.view.update();
   }
 
@@ -136,159 +99,8 @@ export class SciMonk {
     }
   }
 
-  reset(){
-    this.xMove = 0;
-    this.yMove = 0;
-    this.zMove = 0;
-    this.yRzRot = 0;
-    this.xRzRot = 0;
-    this.xRyRot = 0;
-  }
 
 
-  iniDepthMap(){
-    var i=0;
-    var d = -this.Depth/2;
-    for(i=0;i<this.CanvasWidth*this.CanvasHeight*3;i+=3){
-      this.depthMap[i] = d;
-      this.depthMap[i+1] = 0;
-      this.depthMap[i+1] = this.undefinedShapeId; // depth, update iteration, shape id
-    }
-  } 
-
-  fill(triangle, colour, id){
-    var points2D = this.convertTo2D(triangle.points); 
-
-    var a = [points2D[1][0]-points2D[0][0],points2D[1][1]-points2D[0][1]];
-    var az = points2D[1][2]-points2D[0][2];
-
-    var b = [points2D[0][0]-points2D[2][0],points2D[0][1]-points2D[2][1]];
-    var bz = points2D[0][2]-points2D[2][2];
-
-
-    this.lineFillTriangle2D(points2D[2],b,bz,points2D[0],a,az,colour,id);
-    
-  }
-
-  lines=function(nodes, colour, alpha){
-    if(nodes.length == 2){ // Line
-      this.nodeVector(nodes[0], nodes[1], colour, alpha);
-    }else if(nodes.length > 2){ // Triangle
-      this.nodeVector(nodes[0], nodes[1], colour, alpha);
-      this.nodeVector(nodes[1], nodes[2], colour, alpha);
-      this.nodeVector(nodes[2], nodes[0], colour, alpha);
-    }
-  }
-
-  lineFillTriangle2D(u,ux,uxZ,v,vx,vxZ,colour,id){
-    var i = 0;
-    var uxLen = vLen(ux)*1.5;
-    for(i=0;i<uxLen;i++){
-      this.drawLine(
-      u[0] + ux[0]/uxLen*i, 
-      v[0] + vx[0],
-      u[1] + ux[1]/uxLen*i,
-      v[1] + vx[1],
-      u[2] + uxZ/uxLen*i,
-      v[2] + vxZ,
-      colour,id);
-    }
-  }
-  
-  /*
-    computes the 2D position
-  */
-  to2D(cords){
-    return [this.zRx(cords[0],cords[2])|0, 
-        this.zRy(cords[1],cords[2])|0,
-        cords[2]];
-  }
-
-
-  convertTo2D(points){
-    var i =0;
-    var points2D = new Array();
-    for(i=0;i<points.length;i++){
-      points2D[i] = this.to2D(points[i]);
-    }
-    return points2D;
-  }
-
-  nodeVector(node1, node2, colour, alpha){
-    var uv = uToV(node1,node2);
-    if(vLen(uv)>25){
-      this.nodeVector(node1,addV(node1,Vx(uv,0.5)),colour, alpha);
-      this.nodeVector(addV(node1,Vx(uv,0.5)),node2,colour, alpha);
-    }else{
-      if(!colour){
-        colour = [10,10,10,250];
-      }
-      if(alpha){
-        colour[3] = 250;
-      }
-      var as = this.to2D(node1);
-      var bs = this.to2D(node2);
-
-      this.drawLine(as[0],bs[0],as[1],bs[1],as[2],bs[2],colour);
-    }
-  }
-
-  /*
-    UNTRANSFORMED NODE
-    Returns a rotated and translated node 
-    without transforming it
-
-  */
-  uNode(cord){
-    return addV(rotateNode(cord,[this.xRzRot,this.yRzRot,this.xRyRot],[0,0,0]),
-          [this.xMove,this.yMove,this.zMove]);
-  }
-
-  uPlane(plane){
-    var i = 0;
-    var uPlane = new Array();
-    for(i=0;i<plane.length;i++){
-      uPlane[i] = this.uNode(plane[i]);
-    }
-    return uPlane;
-  }
-
-  /**
-   * PERSPECTIVE
-   */
-  
-  /*
-    X COORDINATE ON CANVAS
-
-  */
-  xOnCanvas(x){
-    return (this.CanvasWidth/this.Width)*x;
-  }
-
-  /*
-    Y COORDINATE ON CANVAS
-
-  */
-  yOnCanvas(y){
-    return this.CanvasHeight - (this.CanvasHeight/this.Height)*y;
-  }
-
-
-  /*
-    X ON GRAPH
-
-  */
-  xGraph(x){
-    return x - (this.Width/2);
-  }
-
-  /*
-    Y ON GRAPH
-
-  */
-  yGraph(y){
-    return (y - (this.Height/2));
-  }
 
   /*
     X TO GRAPH
@@ -296,7 +108,7 @@ export class SciMonk {
 
   */
   xToGraph(x){
-    return (this.Width/this.CanvasWidth*(x - (this.CanvasWidth/2)))*0.5;
+    return (this.view.width/this.view.width*(x - (this.view.width/2)))*0.5;
   }
 
   /*
@@ -305,99 +117,16 @@ export class SciMonk {
 
   */
   yToGraph(y){
-    return (this.Height/this.CanvasHeight*(y - (this.CanvasHeight/2))*-1)*0.5;
+    return (this.view.height/this.view.height*(y - (this.view.height/2))*-1)*0.5;
   }
 
   // ----------------------------- Z Metrics -------------------------------
-  /*
-    X ANGLE
-    Returns the angle between an x coordinate and origo.
-  */
-  xAngle( x, max ){
-    x = x*max; // INFO: Spread a thinner angle over a larger area. When max is 0.5 and x is 10, x will be given as 10*0.5 = 5
-    x = (2*x)/this.Width;
-    return Math.acos(x);
-  }
-
-  /*
-    Y ANGLE
-    Returns the angle between an y coordinate and origo.
-    
-  */
-  yAngle (y, max){
-    y = y*max; // Spread a thinner angle over a larger area.
-    y = (2*y)/this.Height;
-    return Math.asin(y);
-  }
-
-  /*
-    X PERSPECTIVE
-    Gives a point on the x axis relative to the depth in z  
-    
-  */
-  zRx(x,z){
-    z = z + this.Depth/2;
-    x = x + this.Width/2;       
-    return this.xOnCanvas(
-        x + ((this.Depth-z)*(this.Depth/(z)))*Math.cos(this.xAngle(this.xGraph(x),0.5))
-      );
-  }
-
-  /*
-    Y PERSPECTIVE
-    Gives a point on the y axis relative to the depth in z  
-
-  */
-  zRy(y,z){
-    z = z + this.Depth/2; 
-    y = y + this.Height/2;	
-    return this.yOnCanvas(
-        y + ((this.Depth-z)*(this.Depth/(z)))*Math.sin(this.yAngle(this.yGraph(y),0.5))
-      );
-  } 
 
   /*
 	  Z COORDINAT ON MAP
   */
   zOnMap(z){
-    return (this.CanvasWidth/this.Depth)*z;
-  }
-
-  /**
-   * DRAWING 
-   */
-
-
-  drawLine( x1, x2, y1, y2, z1, z2, co, id) {
-    var u =[x1,y1];
-    var v =[x2,y2];
-    var uv = uToV(u,v);
-    var len = vLen(uv)*1.2;
-    var w = (z2-z1)/len;// Depth test
-    var t =0;
-    var Z = this.Depth/3;
-    for(t=0;t<len;t++){
-      var x = u[0]+uv[0]/len*t|0;
-      var y = u[1]+uv[1]/len*t|0;
-      var z = z1 + w*t;
-      var Zindex = y*(this.CanvasWidth*3) + x*3;
-      if( ((x > 0 && x < this.CanvasWidth) && ( y > 0 && y < this.CanvasHeight)) && (z > -Z) ){
-        //Depth test
-        if(this.it > this.depthMap[ Zindex + 1] || this.depthMap[Zindex] >= z){ 
-          this.depthMap[Zindex]=z;
-          this.depthMap[Zindex + 1]=this.it;
-          this.depthMap[Zindex + 2]=id;
-          this.setPixel(
-          x, 
-          y, 
-          co[0],co[1],co[2],co[3]);
-        }
-      }
-    }
-  }
-
-  setPixel(x, y, r, g, b, a) {
-    this.view.setPixel(x, y, r, g, b, a);
+    return (this.view.width/this.Depth)*z;
   }
 
   setAlpha(tringle,colour){
@@ -407,7 +136,7 @@ export class SciMonk {
     var lv = uToV(origo,Vx(this.lightVector,0.5));
     var nv = uToV(origo,addV(origo,normal));
     
-    var persp = uToV([0,0,-this.Depth/2],origo)
+    var persp = uToV([0,0,-this.view.Depth/2],origo)
     var nv1 = vectorAngle(nv,persp);
     var nv2 = vectorAngle(uToV(origo,addV(origo,Vx(normal,-1))),persp);
     
