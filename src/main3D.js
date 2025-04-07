@@ -6,7 +6,7 @@
 
 */
 
-import { Geometry } from './geometry.js';
+import { Geometry, Triangle } from './geometry.js';
 import { 
   addV, Vx, planeIntersection, planeNormal, uToV,
   vectorAngle
@@ -33,13 +33,6 @@ export class SciMonk {
     this.lightVector = [-this.view.width/2,this.view.height/2,-this.view.Depth];
     this.alpha = 255;
 
-  }
-
-  addGeometry(triangles, type, colour, scale, rotation) {
-    var origo = getShapeOrigo(triangles);
-    const geometry = new Geometry(triangles, origo, type, colour, scale, rotation, this.model.nr);
-    this.model.geometries[geometry.id] = geometry;
-    this.model.nr++;
   }
 
   add(geometry) {

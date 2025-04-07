@@ -60,50 +60,13 @@ export class ScimonkView {
     }
   }
 
-  points2D = [[0,0,0],[0,0,0],[0,0,0]];
+  points2D = new Float32Array(9);
   ux = new Float32Array(3);
   vx = new Float32Array(3);
   uxZ = 0;
   vxZ = 0;
 
-  fill(triangle, colour, id){
-
-    //this.points2D = this.convertTo2D(triangle.points);
-    // convert points to 2D in place
-    this.points2D[0][0] = this.zRx(triangle.points[0][0],triangle.points[0][2])|0;
-    this.points2D[0][1] = this.zRy(triangle.points[0][1],triangle.points[0][2])|0;
-    this.points2D[0][2] = triangle.points[0][2];  // Preserve z-coordinate
-    this.points2D[1][0] = this.zRx(triangle.points[1][0],triangle.points[1][2])|0;
-    this.points2D[1][1] = this.zRy(triangle.points[1][1],triangle.points[1][2])|0;
-    this.points2D[1][2] = triangle.points[1][2];  // Preserve z-coordinate
-    this.points2D[2][0] = this.zRx(triangle.points[2][0],triangle.points[2][2])|0;
-    this.points2D[2][1] = this.zRy(triangle.points[2][1],triangle.points[2][2])|0;
-    this.points2D[2][2] = triangle.points[2][2];  // Preserve z-coordinate
-
-    var u = this.points2D[2];
-    this.ux[0] = this.points2D[0][0]-this.points2D[2][0];
-    this.ux[1] = this.points2D[0][1]-this.points2D[2][1];
-    this.uxZ = triangle.points[0][2]-triangle.points[2][2];
-
-    var v = this.points2D[0];
-    this.vx[0] = this.points2D[1][0]-this.points2D[0][0];
-    this.vx[1] = this.points2D[1][1]-this.points2D[0][1];
-    this.vxZ = triangle.points[1][2]-triangle.points[0][2];
-
-    var uxLen = vLen(this.ux)*1.2;
-    for(let i=0;i<uxLen;i++){
-      this.drawLine(
-      u[0] + this.ux[0]/uxLen*i, 
-      v[0] + this.vx[0],
-      u[1] + this.ux[1]/uxLen*i,
-      v[1] + this.vx[1],
-      u[2] + this.uxZ/uxLen*i,
-      v[2] + this.vxZ,
-      colour,id);
-    }
-
-    //this.lineFillTriangle2D(this.points2D[2],b,bz,this.points2D[0],a,az,colour,id);
-  }
+  // ----
 
   lu = new Float32Array(2);
   lv = new Float32Array(2);
@@ -115,6 +78,75 @@ export class ScimonkView {
   lIndex = 0;
   lw = 0;
   lZ = 0;
+  x1 = 0;
+  y1 = 0;
+  z1 = 0;
+  x2 = 0;
+  y2 = 0;
+  z2 = 0;
+
+  fill(triangle, co, id){
+
+    //this.points2D = this.convertTo2D(triangle.points);
+    // convert points to 2D in place
+    this.points2D[0] = this.zRx(triangle.points[0][0],triangle.points[0][2])|0;
+    this.points2D[1] = this.zRy(triangle.points[0][1],triangle.points[0][2])|0;
+    this.points2D[2] = triangle.points[0][2];  // Preserve z-coordinate
+    this.points2D[3] = this.zRx(triangle.points[1][0],triangle.points[1][2])|0;
+    this.points2D[4] = this.zRy(triangle.points[1][1],triangle.points[1][2])|0;
+    this.points2D[5] = triangle.points[1][2];  // Preserve z-coordinate
+    this.points2D[6] = this.zRx(triangle.points[2][0],triangle.points[2][2])|0;
+    this.points2D[7] = this.zRy(triangle.points[2][1],triangle.points[2][2])|0;
+    this.points2D[8] = triangle.points[2][2];  // Preserve z-coordinate
+
+    this.ux[0] = this.points2D[0]-this.points2D[6];
+    this.ux[1] = this.points2D[1]-this.points2D[7];
+    this.uxZ = triangle.points[0][2]-triangle.points[2][2];
+
+    this.vx[0] = this.points2D[3]-this.points2D[0];
+    this.vx[1] = this.points2D[4]-this.points2D[1];
+    this.vxZ = triangle.points[1][2]-triangle.points[0][2];
+
+    this.x2 = this.points2D[0] + this.vx[0];
+    this.y2 = this.points2D[1] + this.vx[1];
+    this.z2 = this.points2D[2] + this.vxZ;
+
+    var uxLen = Math.sqrt(this.ux[0]*this.ux[0] + this.ux[1]*this.ux[1])*1;
+
+    for(let i=0;i<uxLen;i++){
+      this.x1 = this.points2D[6] + this.ux[0]/uxLen*i;
+      this.y1 = this.points2D[7] + this.ux[1]/uxLen*i;
+      this.z1 = this.points2D[8] + this.uxZ/uxLen*i;   
+      this.luv[0] = this.x2 - this.x1;
+      this.luv[1] = this.y2 - this.y1;
+      // vector length
+      var len = Math.sqrt(this.luv[0]*this.luv[0] + this.luv[1]*this.luv[1])*1;
+      // depth test
+      this.lw = (this.z2-this.z1)/len;
+      this.lZ = this.Depth/3;
+
+      for(let t=0;t<len;t++){
+        this.lx = this.x1+this.luv[0]/len*t|0;
+        this.ly = this.y1+this.luv[1]/len*t|0;
+        this.lz = this.z1 + this.lw*t;
+        if( ((this.lx > 0 && this.lx < this.width) && ( this.ly > 0 && this.ly < this.height)) && (this.lz > -this.lZ) ){
+          //Depth test
+          this.lZIndex = this.ly*(this.width*3) + this.lx*3;
+          if(this.it > this.depthMap[ this.lZIndex + 1] || this.depthMap[this.lZIndex] >= this.lz){ 
+            this.depthMap[this.lZIndex]=this.lz;
+            this.depthMap[this.lZIndex + 1]=this.it;
+            this.depthMap[this.lZIndex + 2]=id;
+
+            this.lIndex = (this.lx + this.ly * this.width) * 4;
+            this.data[this.lIndex+0] = co[0];
+            this.data[this.lIndex+1] = co[1];
+            this.data[this.lIndex+2] = co[2];
+            this.data[this.lIndex+3] = co[3];
+          }
+        }
+      }
+    }
+  }
 
   drawLine( x1, x2, y1, y2, z1, z2, co, id) {
     this.lu[0] = x1;
@@ -125,7 +157,7 @@ export class ScimonkView {
     this.luv[1] = this.lv[1] - this.lu[1];
 
     // vector length
-    var len = Math.sqrt(this.luv[0]*this.luv[0] + this.luv[1]*this.luv[1])*1.2;
+    var len = Math.sqrt(this.luv[0]*this.luv[0] + this.luv[1]*this.luv[1])*1;
     // depth test
     this.lw = (z2-z1)/len;
     this.lZ = this.Depth/3;
@@ -134,9 +166,9 @@ export class ScimonkView {
       this.lx = this.lu[0]+this.luv[0]/len*t|0;
       this.ly = this.lu[1]+this.luv[1]/len*t|0;
       this.lz = z1 + this.lw*t;
-      this.lZIndex = this.ly*(this.width*3) + this.lx*3;
       if( ((this.lx > 0 && this.lx < this.width) && ( this.ly > 0 && this.ly < this.height)) && (this.lz > -this.lZ) ){
         //Depth test
+        this.lZIndex = this.ly*(this.width*3) + this.lx*3;
         if(this.it > this.depthMap[ this.lZIndex + 1] || this.depthMap[this.lZIndex] >= this.lz){ 
           this.depthMap[this.lZIndex]=this.lz;
           this.depthMap[this.lZIndex + 1]=this.it;

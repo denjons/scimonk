@@ -53,6 +53,22 @@
             height="1500"
             style="background: white; margin-right: 10px;"
           ></canvas>
+          
+          <!-- Text fields moved to the right of the canvas -->
+          <div id="statsPanel" style="display: flex; flex-direction: column; justify-content: center; margin-left: 10px;">
+            <div class="container">
+              <label>Render time:</label>
+              <input type="text" id="renderTime" readonly />
+            </div>
+            <div class="container">
+              <label>Misc:</label>
+              <input type="text" id="misc" readonly />
+            </div>
+            <div class="container">
+              <label>Triangles:</label>
+              <input type="text" id="triangles" readonly />
+            </div>
+          </div>
         </div>
         <div id="inputPanel">
           <table>

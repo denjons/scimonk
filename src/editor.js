@@ -12,6 +12,16 @@ let running = true;
 let bag;
 let box;
 let sphere;
+
+// Function to update the triangle count display
+function updateTriangleCount() {
+  let totalTriangles = 0;
+  for (let geometry of sciMonk.model.geometries) {
+    totalTriangles += geometry.triangles.length;
+  }
+  document.getElementById('triangles').value = totalTriangles;
+}
+
 // File handling functions
 function dropEventHandler(event) {
   console.log("dropped file" + event);
@@ -39,6 +49,7 @@ function readStlFile(event) {
   reader.readAsArrayBuffer(file);
   reader.onload = function() {
     parseSTL(reader.result);
+    updateTriangleCount();
   };
   reader.onerror = function() {
     console.log(reader.error);
@@ -48,11 +59,10 @@ function readStlFile(event) {
 function parseSTL(arrayBuffer) {
   const geometry = sciMonk.parseSTL(arrayBuffer);
   geometry.center([0,0,0]);
-  geometry.scale([6,6,6]);
-  geometry.rotate([0,Math.PI/2,Math.PI]);
+  geometry.scale([2,2,2]);
+  geometry.rotate([0,Math.PI/2,0]);
+  geometry.rotate([Math.PI/2,0,0]);
   sciMonk.add(geometry);
-  sciMonk.render();
-  updateShapeList();
 }
 
 function readJsonfILe(event) {
@@ -115,8 +125,14 @@ function runBag() {
   bag = newBag;
   bag.shakeTriangles(7);
   sciMonk.rotate(rott);
+  
+  let startTime = performance.now();
   sciMonk.render();
-
+  let endTime = performance.now();
+  let timeTaken = endTime - startTime;
+  
+  // Update render time field
+  document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
 
   if(running) {
     setTimeout(runBag, 25);
@@ -137,7 +153,7 @@ function initBag(){
   bag = createBag(0,-50,0,100,150,50, [3,3,3,255], 1);
   bag.shakeTriangles(7);
   sciMonk.add(bag);
-
+  updateTriangleCount();
   sciMonk.render();
   runBag();
 }
@@ -153,29 +169,25 @@ function initBroccoli(){
   sciMonk = new SciMonk(view, drawModes);
   const broccoliFactory = new BroccoliFactory(50, 20, 6, [50,200,50,255], 1);
   const broccoli = broccoliFactory.createBroccoli([0,0,0], [200,200,200]);
-  const broccoliCopy = broccoli.copy();
-  broccoliCopy.setDrawModes(new DrawModes(false, true));
-  broccoliCopy.scale([1.01,1.01,1.01]);
   sciMonk.add(broccoli);
-  sciMonk.add(broccoliCopy);
+  const broccoliCopy = broccoli.copy();
+ // broccoliCopy.setDrawModes(new DrawModes(false, true));
+ // broccoliCopy.scale([1.01,1.01,1.01]);
+  //sciMonk.add(broccoliCopy);
   sciMonk.render();
   running = true;
+  updateTriangleCount();
   runBroccoli();
 }
 
 function runBroccoli(){
+  sciMonk.rotate([-0.05,0,0]);
   let startTime = performance.now();
   sciMonk.render();
   let endTime = performance.now();
-  let timeTaken = endTime - startTime;
-  console.log(`Render time: ${timeTaken} milliseconds`);
-
-  let startTime2 = performance.now();
-  sciMonk.rotate([-0.05,0,0]);
-  let endTime2 = performance.now();
-  let timeTaken2 = endTime2 - startTime2;
-  console.log(`Rotate time: ${timeTaken2} milliseconds`);
-
+  let timeTaken = endTime - startTime;  
+  document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
+  
   drawModes.overrideFillColour([255*Math.random(),255*Math.random(),255*Math.random(),255]);
 
   if(running) {
@@ -198,6 +210,7 @@ function initBox(){
   sciMonk.rotate([0.05,0.05,0.05]);
   sciMonk.render();
   running = true;
+  updateTriangleCount();
   runBox();
 }
 
@@ -214,16 +227,33 @@ function initBox2(){
   drawModes = new DrawModes(true, true);
   drawModes.overrideLineColour([3,3,3,255]);
   sciMonk = new SciMonk(view, drawModes);
-  const box = Geometry.box([0,0,0], [200,200,200], [200,200,200,255], 1);
+  const box = Geometry.box([0,0,0], [300,300,300], [200,200,200,255], 1);
   sciMonk.add(box);
   sciMonk.render();
   running = true;
+  updateTriangleCount();
   runBox2();
 }
 
 function runBox2(){
+  let startTime = performance.now();  
   sciMonk.render();
+  let endTime = performance.now();
+  let timeTaken = endTime - startTime;
+  console.log(`Render time: ${timeTaken} milliseconds`);
+  
+  // Update render time field
+  document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
+  
+  // Update triangle count
+
+
+  let startTime2 = performance.now();
   sciMonk.rotate([0.05,0.05,0.05]);
+  let endTime2 = performance.now();
+  let timeTaken2 = endTime2 - startTime2;
+  console.log(`Rotate time: ${timeTaken2} milliseconds`);
+
   if(running) {
     setTimeout(runBox2, 25);
   } else {
@@ -250,21 +280,57 @@ function runSphere(){
   //box.rotate(rott);
  // sciMonk.add(box);
   //sphere.shakeTriangles(2);
+  let startTime = performance.now();
   sciMonk.rotate([0.05,0,0]);
   sciMonk.render();
+  let endTime = performance.now();
+  let timeTaken = endTime - startTime;
+  
+  // Update render time field
+  document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
+  
+  // Update triangle count
+  updateTriangleCount();
+  
   if(running) {
     setTimeout(runSphere, 25);
+  }
+}
+
+function initEmpty(){
+  view = new ScimonkView(document.getElementById("canvas"), 75);
+  drawModes = new DrawModes(true, false);
+  drawModes.overrideLineColour([3,3,3,255]);
+  sciMonk = new SciMonk(view, drawModes);
+  runEmpty();
+}
+
+function runEmpty(){
+  let startTime = performance.now();
+  sciMonk.rotate([0.05,0,0]);
+  sciMonk.render();
+  let endTime = performance.now();
+  let timeTaken = endTime - startTime;
+  document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
+  if(running) {
+    setTimeout(runEmpty, 25);
   }
 }
 
 
 
 export function init(){
+  // Initialize text fields with default values
+  document.getElementById('renderTime').value = '0.00 ms';
+  document.getElementById('misc').value = '';
+  document.getElementById('triangles').value = '0';
+  
   //initBag();
-  initBroccoli();
+  //initBroccoli();
   //initBox();
-  //initBox2();
+  initBox2();
   //initSphere();
+  //initEmpty();
 }
 
 
