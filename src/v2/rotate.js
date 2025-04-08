@@ -2,13 +2,9 @@
     ROTATION
   */
 
-const XZ = new Float32Array([0,1,0]);
-const YZ = new Float32Array([1,0,0]);
-const XY = new Float32Array([0,0,1]);
-
-const xzRotationMatrix = [new Float32Array([0,0,0]), XZ, new Float32Array([0,0,0])];
-const yzRotationMatrix = [YZ, new Float32Array([0,0,0]), new Float32Array([0,0,0])];
-const xyRotationMatrix = [new Float32Array([0,0,0]), new Float32Array([0,0,0]), XY];
+const xzRotationMatrix = new Float32Array([0,0,0,0,1,0,0,0,0]);
+const yzRotationMatrix = new Float32Array([1,0,0,0,0,0,0,0,0]);
+const xyRotationMatrix = new Float32Array([0,0,0,0,0,0,0,0,1]);
 
 const uv = new Float32Array([0,0,0]);
 
@@ -19,10 +15,10 @@ export function rotateNode(node,rad,origo){
   
   // XZ rotation
   if(rad[0] !== 0){
-    xzRotationMatrix[0][0] = Math.cos(rad[0]);
-    xzRotationMatrix[0][2] = -Math.sin(rad[0]);
-    xzRotationMatrix[2][0] = Math.sin(rad[0]);
-    xzRotationMatrix[2][2] = Math.cos(rad[0]);
+    xzRotationMatrix[0] = Math.cos(rad[0]);
+    xzRotationMatrix[2] = -Math.sin(rad[0]);
+    xzRotationMatrix[6] = Math.sin(rad[0]);
+    xzRotationMatrix[8] = Math.cos(rad[0]);
 
     uv[0] = rotatedNode[0] - origo[0];
     uv[1] = rotatedNode[1] - origo[1];
@@ -37,10 +33,10 @@ export function rotateNode(node,rad,origo){
 
   // YZ rotation
   if(rad[1] !== 0){
-    yzRotationMatrix[1][1] = Math.cos(rad[1]);
-    yzRotationMatrix[1][2] = Math.sin(rad[1]);
-    yzRotationMatrix[2][1] = -Math.sin(rad[1]);
-    yzRotationMatrix[2][2] = Math.cos(rad[1]);
+    yzRotationMatrix[4] = Math.cos(rad[1]);
+    yzRotationMatrix[5] = Math.sin(rad[1]);
+    yzRotationMatrix[7] = -Math.sin(rad[1]);
+    yzRotationMatrix[8] = Math.cos(rad[1]);
 
     uv[0] = rotatedNode[0] - origo[0];
     uv[1] = rotatedNode[1] - origo[1];
@@ -55,10 +51,10 @@ export function rotateNode(node,rad,origo){
 
   // XY rotation
   if(rad[2] !== 0){
-    xyRotationMatrix[0][0] = Math.cos(rad[2]);
-    xyRotationMatrix[0][1] = Math.sin(rad[2]);
-    xyRotationMatrix[1][0] = -Math.sin(rad[2]);
-    xyRotationMatrix[1][1] = Math.cos(rad[2]);
+    xyRotationMatrix[0] = Math.cos(rad[2]);
+    xyRotationMatrix[1] = Math.sin(rad[2]);
+    xyRotationMatrix[3] = -Math.sin(rad[2]);
+    xyRotationMatrix[4] = Math.cos(rad[2]);
 
     uv[0] = rotatedNode[0] - origo[0];
     uv[1] = rotatedNode[1] - origo[1];
@@ -80,7 +76,7 @@ export function Ab(A,v){
 	ve[2] = 0;
 	for(let i=0; i<3; i++){
 		for(let j=0; j<3; j++){
-			ve[i] = ve[i] + A[i][j]*v[j];
+			ve[i] = ve[i] + A[i * 3 + j] * v[j];
 		}
 	}
 	return ve;

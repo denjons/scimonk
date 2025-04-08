@@ -149,12 +149,12 @@ export class ScimonkView {
   }
 
   drawLine( x1, x2, y1, y2, z1, z2, co, id) {
-    this.lu[0] = x1;
-    this.lu[1] = y1;
-    this.lv[0] = x2;
-    this.lv[1] = y2;
-    this.luv[0] = this.lv[0] - this.lu[0];
-    this.luv[1] = this.lv[1] - this.lu[1];
+    this.x1 = x1;
+    this.y1 = y1;
+    this.x2 = x2;
+    this.y2 = y2;
+    this.luv[0] = this.x2 - this.x1;
+    this.luv[1] = this.y2 - this.y1;
 
     // vector length
     var len = Math.sqrt(this.luv[0]*this.luv[0] + this.luv[1]*this.luv[1])*1;
@@ -163,8 +163,8 @@ export class ScimonkView {
     this.lZ = this.Depth/3;
 
     for(let t=0;t<len;t++){
-      this.lx = this.lu[0]+this.luv[0]/len*t|0;
-      this.ly = this.lu[1]+this.luv[1]/len*t|0;
+      this.lx = this.x1+this.luv[0]/len*t|0;
+      this.ly = this.y1+this.luv[1]/len*t|0;
       this.lz = z1 + this.lw*t;
       if( ((this.lx > 0 && this.lx < this.width) && ( this.ly > 0 && this.ly < this.height)) && (this.lz > -this.lZ) ){
         //Depth test

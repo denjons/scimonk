@@ -155,6 +155,8 @@ export class Triangle {
   }
 
   scale(origin, vector) {
+    this.normalVector[0] = scale(this.normalVector[0], origin, vector);
+    this.normalVector[1] = scale(this.normalVector[1], origin, vector);
     for(let i=0;i<this.points.length;i++){
       this.points[i] = scale(this.points[i], origin, vector);
     }

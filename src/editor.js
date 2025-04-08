@@ -227,7 +227,7 @@ function initBox2(){
   drawModes = new DrawModes(true, true);
   drawModes.overrideLineColour([3,3,3,255]);
   sciMonk = new SciMonk(view, drawModes);
-  const box = Geometry.box([0,0,0], [300,300,300], [200,200,200,255], 1);
+  const box = Geometry.box([0,0,0], [150,150,150], [200,200,200,255], 1);
   sciMonk.add(box);
   sciMonk.render();
   running = true;
@@ -299,7 +299,7 @@ function runSphere(){
 
 function initEmpty(){
   view = new ScimonkView(document.getElementById("canvas"), 75);
-  drawModes = new DrawModes(true, false);
+  drawModes = new DrawModes(false, true);
   drawModes.overrideLineColour([3,3,3,255]);
   sciMonk = new SciMonk(view, drawModes);
   runEmpty();

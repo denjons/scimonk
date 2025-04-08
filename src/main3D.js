@@ -49,9 +49,10 @@ export class SciMonk {
     this.view.reset();
     for(let geometry of this.model.geometries) {
       for(let triangle of geometry.triangles) {
+        //this.view.nodeVector(triangle.normalVector[0], triangle.normalVector[1],[100,50,50,250],false);
         var point;
         if(this.drawModes.skipBackFacingTriangles){
-          point = this.normalIntersectsPlane(triangle, 4000, -1000, 10000);
+          point = this.normalIntersectsPlane(triangle, 4000, -1000, 100000);
         }
         if(!point){
           if(geometry.drawModes ? geometry.drawModes.fill : this.drawModes.fill){
@@ -68,7 +69,6 @@ export class SciMonk {
           }
         }else{
           //this.fill(triangle, geometry.colour, geometry.id);
-          //this.nodeVector(triangle.normalVector[0], triangle.normalVector[1],[100,50,50,250],false);
           //this.cross(point, 20, [255,1,1,255]);
         }
       }
