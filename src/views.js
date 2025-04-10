@@ -84,71 +84,99 @@ export class ScimonkView {
   x2 = 0;
   y2 = 0;
   z2 = 0;
+  co = new Float32Array(4);
 
-  fill(triangle, co, id){
+  fill(triangle, colour, id) {
+    // Copy the colour to the co array
+    this.co[0] = colour[0];
+    this.co[1] = colour[1];
+    this.co[2] = colour[2];
+    this.co[3] = colour[3];
 
-    //this.points2D = this.convertTo2D(triangle.points);
-    // convert points to 2D in place
-    this.points2D[0] = this.zRx(triangle.points[0][0],triangle.points[0][2])|0;
-    this.points2D[1] = this.zRy(triangle.points[0][1],triangle.points[0][2])|0;
-    this.points2D[2] = triangle.points[0][2];  // Preserve z-coordinate
-    this.points2D[3] = this.zRx(triangle.points[1][0],triangle.points[1][2])|0;
-    this.points2D[4] = this.zRy(triangle.points[1][1],triangle.points[1][2])|0;
-    this.points2D[5] = triangle.points[1][2];  // Preserve z-coordinate
-    this.points2D[6] = this.zRx(triangle.points[2][0],triangle.points[2][2])|0;
-    this.points2D[7] = this.zRy(triangle.points[2][1],triangle.points[2][2])|0;
-    this.points2D[8] = triangle.points[2][2];  // Preserve z-coordinate
+    // Convert points to 2D in place
+    this.points2D[0] = this.zRx(triangle.points[0][0], triangle.points[0][2])|0;
+    this.points2D[1] = this.zRy(triangle.points[0][1], triangle.points[0][2])|0;
+    this.points2D[2] = triangle.points[0][2];
+    this.points2D[3] = this.zRx(triangle.points[1][0], triangle.points[1][2])|0;
+    this.points2D[4] = this.zRy(triangle.points[1][1], triangle.points[1][2])|0;
+    this.points2D[5] = triangle.points[1][2];
+    this.points2D[6] = this.zRx(triangle.points[2][0], triangle.points[2][2])|0;
+    this.points2D[7] = this.zRy(triangle.points[2][1], triangle.points[2][2])|0;
+    this.points2D[8] = triangle.points[2][2];
 
-    this.ux[0] = this.points2D[0]-this.points2D[6];
-    this.ux[1] = this.points2D[1]-this.points2D[7];
-    this.uxZ = triangle.points[0][2]-triangle.points[2][2];
+    // Calculate vectors
+    this.ux[0] = this.points2D[0] - this.points2D[6];
+    this.ux[1] = this.points2D[1] - this.points2D[7];
+    this.uxZ = triangle.points[0][2] - triangle.points[2][2];
 
-    this.vx[0] = this.points2D[3]-this.points2D[0];
-    this.vx[1] = this.points2D[4]-this.points2D[1];
-    this.vxZ = triangle.points[1][2]-triangle.points[0][2];
+    this.vx[0] = this.points2D[3] - this.points2D[0];
+    this.vx[1] = this.points2D[4] - this.points2D[1];
+    this.vxZ = triangle.points[1][2] - triangle.points[0][2];
 
     this.x2 = this.points2D[0] + this.vx[0];
     this.y2 = this.points2D[1] + this.vx[1];
     this.z2 = this.points2D[2] + this.vxZ;
 
-    var uxLen = Math.sqrt(this.ux[0]*this.ux[0] + this.ux[1]*this.ux[1])*1;
+    const uxLen = Math.sqrt(this.ux[0] * this.ux[0] + this.ux[1] * this.ux[1]);
+    const lZ = this.Depth/3;
 
-    for(let i=0;i<uxLen;i++){
-      this.x1 = this.points2D[6] + this.ux[0]/uxLen*i;
-      this.y1 = this.points2D[7] + this.ux[1]/uxLen*i;
-      this.z1 = this.points2D[8] + this.uxZ/uxLen*i;   
+    for(let i = 0; i < uxLen; i++) {
+      this.x1 = this.points2D[6] + this.ux[0]/uxLen * i;
+      this.y1 = this.points2D[7] + this.ux[1]/uxLen * i;
+      this.z1 = this.points2D[8] + this.uxZ/uxLen * i;
+      
       this.luv[0] = this.x2 - this.x1;
       this.luv[1] = this.y2 - this.y1;
-      // vector length
-      var len = Math.sqrt(this.luv[0]*this.luv[0] + this.luv[1]*this.luv[1])*1;
-      // depth test
-      this.lw = (this.z2-this.z1)/len;
-      this.lZ = this.Depth/3;
+      
+      const len = Math.sqrt(this.luv[0] * this.luv[0] + this.luv[1] * this.luv[1]);
+      this.lw = (this.z2 - this.z1)/len;
 
-      for(let t=0;t<len;t++){
-        this.lx = this.x1+this.luv[0]/len*t|0;
-        this.ly = this.y1+this.luv[1]/len*t|0;
-        this.lz = this.z1 + this.lw*t;
-        if( ((this.lx > 0 && this.lx < this.width) && ( this.ly > 0 && this.ly < this.height)) && (this.lz > -this.lZ) ){
-          //Depth test
-          this.lZIndex = this.ly*(this.width*3) + this.lx*3;
-          if(this.it > this.depthMap[ this.lZIndex + 1] || this.depthMap[this.lZIndex] >= this.lz){ 
-            this.depthMap[this.lZIndex]=this.lz;
-            this.depthMap[this.lZIndex + 1]=this.it;
-            this.depthMap[this.lZIndex + 2]=id;
+      for(let t = 0; t < len; t++) {
+        this.lx = this.x1 + this.luv[0]/len * t|0;
+        this.ly = this.y1 + this.luv[1]/len * t|0;
+        this.lz = this.z1 + this.lw * t;
+        
+        if(this.lx > 0 && this.lx < this.width && 
+           this.ly > 0 && this.ly < this.height && 
+           this.lz > -lZ) {
+          
+          this.lZIndex = this.ly * (this.width * 3) + this.lx * 3;
+          if(this.it > this.depthMap[this.lZIndex + 1] || 
+             this.depthMap[this.lZIndex] >= this.lz) {
+            
+            this.depthMap[this.lZIndex] = this.lz;
+            this.depthMap[this.lZIndex + 1] = this.it;
+            this.depthMap[this.lZIndex + 2] = id;
 
             this.lIndex = (this.lx + this.ly * this.width) * 4;
-            this.data[this.lIndex+0] = co[0];
-            this.data[this.lIndex+1] = co[1];
-            this.data[this.lIndex+2] = co[2];
-            this.data[this.lIndex+3] = co[3];
+            this.data[this.lIndex] = this.co[0];
+            this.data[this.lIndex + 1] = this.co[1];
+            this.data[this.lIndex + 2] = this.co[2];
+            this.data[this.lIndex + 3] = this.co[3];
           }
         }
       }
     }
   }
 
-  drawLine( x1, x2, y1, y2, z1, z2, co, id) {
+  lines=function(triangle, colour){
+    this.nodeVector(triangle.points[0], triangle.points[1], colour);
+    this.nodeVector(triangle.points[1], triangle.points[2], colour);
+    this.nodeVector(triangle.points[2], triangle.points[0], colour);
+  }
+
+  nodeVector(node1, node2, colour){
+    var as = this.to2D(node1);
+    var bs = this.to2D(node2);
+    this.drawLine(as[0],bs[0],as[1],bs[1],as[2],bs[2],colour);
+  }
+
+  drawLine( x1, x2, y1, y2, z1, z2, colour, id) {
+    this.co[0] = colour[0];
+    this.co[1] = colour[1];
+    this.co[2] = colour[2];
+    this.co[3] = colour[3];
+
     this.x1 = x1;
     this.y1 = y1;
     this.x2 = x2;
@@ -175,10 +203,10 @@ export class ScimonkView {
           this.depthMap[this.lZIndex + 2]=id;
 
           this.lIndex = (this.lx + this.ly * this.width) * 4;
-          this.data[this.lIndex+0] = co[0];
-          this.data[this.lIndex+1] = co[1];
-          this.data[this.lIndex+2] = co[2];
-          this.data[this.lIndex+3] = co[3];
+          this.data[this.lIndex+0] = this.co[0];
+          this.data[this.lIndex+1] = this.co[1];
+          this.data[this.lIndex+2] = this.co[2];
+          this.data[this.lIndex+3] = this.co[3];
         }
       }
     }
@@ -254,34 +282,7 @@ export class ScimonkView {
     return this.height - (this.height/this.height)*y;
   }
 
-  lines=function(nodes, colour, alpha){
-    if(nodes.length == 2){ // Line
-      this.nodeVector(nodes[0], nodes[1], colour, alpha);
-    }else if(nodes.length > 2){ // Triangle
-      this.nodeVector(nodes[0], nodes[1], colour, alpha);
-      this.nodeVector(nodes[1], nodes[2], colour, alpha);
-      this.nodeVector(nodes[2], nodes[0], colour, alpha);
-    }
-  }
 
-  nodeVector(node1, node2, colour, alpha){
-    var uv = uToV(node1,node2);
-    if(vLen(uv)>25){
-      this.nodeVector(node1,addV(node1,Vx(uv,0.5)),colour, alpha);
-      this.nodeVector(addV(node1,Vx(uv,0.5)),node2,colour, alpha);
-    }else{
-      if(!colour){
-        colour = [10,10,10,250];
-      }
-      if(alpha){
-        colour[3] = 250;
-      }
-      var as = this.to2D(node1);
-      var bs = this.to2D(node2);
-
-      this.drawLine(as[0],bs[0],as[1],bs[1],as[2],bs[2],colour);
-    }
-  }
 
   to2D(cords){
     return [this.zRx(cords[0],cords[2])|0, 

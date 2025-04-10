@@ -224,7 +224,7 @@ function runBox(){
 
 function initBox2(){
   view = new ScimonkView(document.getElementById("canvas"), 75);
-  drawModes = new DrawModes(true, true);
+  drawModes = new DrawModes(false, true);
   drawModes.overrideLineColour([3,3,3,255]);
   sciMonk = new SciMonk(view, drawModes);
   const box = Geometry.box([0,0,0], [150,150,150], [200,200,200,255], 1);
@@ -327,8 +327,8 @@ export function init(){
   
   //initBag();
   //initBroccoli();
-  //initBox();
-  initBox2();
+  initBox();
+  //initBox2();
   //initSphere();
   //initEmpty();
 }

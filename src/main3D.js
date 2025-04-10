@@ -60,7 +60,7 @@ export class SciMonk {
             this.view.fill(triangle, colour, geometry.id);
           }
           if(geometry.drawModes ? geometry.drawModes.lines : this.drawModes.lines){
-            this.view.lines(triangle.points, this.drawModes.lineColour ? this.drawModes.lineColour : geometry.colour, geometry.id);
+            this.view.lines(triangle, this.drawModes.lineColour ? this.drawModes.lineColour : geometry.colour, geometry.id);
           }
           if(this.drawModes.shadow){
             var shadow = triangle.project(this.drawModes.shadowVector[0],this.drawModes.shadowVector[1]);
