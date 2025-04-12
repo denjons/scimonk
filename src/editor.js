@@ -4,6 +4,7 @@ import { DrawModes } from './modes.js';
 import { BroccoliFactory } from './things/broccoli.js';
 import { createBag } from './things/bag.js';
 import { Geometry } from './geometry.js';
+import { TextUtils } from './textUtils.js';
 
 let sciMonk;
 let drawModes;
@@ -201,7 +202,7 @@ function runBroccoli(){
   MAIN
 */
 
-function initBox(){
+function initGridBox(){
   view = new ScimonkView(document.getElementById("canvas"), 75);
   drawModes = new DrawModes(true, true);
   sciMonk = new SciMonk(view, drawModes);
@@ -211,31 +212,35 @@ function initBox(){
   sciMonk.render();
   running = true;
   updateTriangleCount();
-  runBox();
+  runGridBox();
 }
 
-function runBox(){
+function runGridBox(){
   sciMonk.rotate([0.05,0,0]);
   sciMonk.render();
   if(running) {
-    setTimeout(runBox, 25);
+    setTimeout(runGridBox, 25);
   }
 }
 
-function initBox2(){
+function initBox(){
   view = new ScimonkView(document.getElementById("canvas"), 75);
-  drawModes = new DrawModes(false, true);
+  drawModes = new DrawModes(true, false);
   drawModes.overrideLineColour([3,3,3,255]);
   sciMonk = new SciMonk(view, drawModes);
   const box = Geometry.box([0,0,0], [150,150,150], [200,200,200,255], 1);
   sciMonk.add(box);
+  const box2 = box.copy();
+  box2.setDrawModes(new DrawModes(false, true));
+  box2.scale([1.01,1.01,1.01]);
+  sciMonk.add(box2);
   sciMonk.render();
   running = true;
   updateTriangleCount();
-  runBox2();
+  runBox();
 }
 
-function runBox2(){
+function runBox(){
   let startTime = performance.now();  
   sciMonk.render();
   let endTime = performance.now();
@@ -255,7 +260,7 @@ function runBox2(){
   console.log(`Rotate time: ${timeTaken2} milliseconds`);
 
   if(running) {
-    setTimeout(runBox2, 25);
+    setTimeout(runBox, 25);
   } else {
     view.finish();
   }
@@ -318,6 +323,35 @@ function runEmpty(){
 }
 
 
+function initText(){
+  
+  view = new ScimonkView(document.getElementById("canvas"), 75);
+  drawModes = new DrawModes(true, false);
+  sciMonk = new SciMonk(view, drawModes);
+  const text = new TextUtils({fontSize: 64, fontWeight: 'bold' });
+  const text2 = text.textTo3D("10杯", [10, 10, 10], [3,3,3,255], 1);
+  text2.scale([0.5,0.5,0.5]);
+  sciMonk.add(text2);
+  sciMonk.render();
+  running = true;
+  updateTriangleCount();
+  runText();
+}
+
+function runText(){
+  let startTime = performance.now();
+  sciMonk.rotate([0.05,0,0]);
+  sciMonk.render();
+  let endTime = performance.now();
+  let timeTaken = endTime - startTime;
+  document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
+  if(running) {
+    setTimeout(runText, 25);
+  } else {
+    view.finish();
+  } 
+}
+
 
 export function init(){
   // Initialize text fields with default values
@@ -327,10 +361,11 @@ export function init(){
   
   //initBag();
   //initBroccoli();
-  initBox();
-  //initBox2();
+  //initBox();
+  //initGridBox();
   //initSphere();
   //initEmpty();
+  initText();
 }
 
 

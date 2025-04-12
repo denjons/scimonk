@@ -31,7 +31,7 @@ export class BroccoliFactory {
     var cylinderSize = [size/3,size*3,size/3];
     var sphereSize = Vx([size,size,size], 1.5);
     var cylinder = Geometry.cylinder(pos, cylinderSize, 5, this.colour, this.id);
-    var sphere = Geometry.sphere([pos[0], pos[1]+cylinderSize[1]/2, pos[2]], sphereSize, 5, 5);
+    var sphere = Geometry.sphere([pos[0], pos[1]+cylinderSize[1]/2, pos[2]], sphereSize, 3, 3);
     const sprout = Geometry.merge([cylinder, sphere], this.colour, this.id);
     sprout.rotateAround(tilt, [pos[0], pos[1]-cylinderSize[1]/2, pos[2]]);
     return sprout;

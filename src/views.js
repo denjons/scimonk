@@ -117,7 +117,7 @@ export class ScimonkView {
     this.y2 = this.points2D[1] + this.vx[1];
     this.z2 = this.points2D[2] + this.vxZ;
 
-    const uxLen = Math.sqrt(this.ux[0] * this.ux[0] + this.ux[1] * this.ux[1]);
+    const uxLen = Math.sqrt(this.ux[0] * this.ux[0] + this.ux[1] * this.ux[1])*1;
     const lZ = this.Depth/3;
 
     for(let i = 0; i < uxLen; i++) {
@@ -128,7 +128,7 @@ export class ScimonkView {
       this.luv[0] = this.x2 - this.x1;
       this.luv[1] = this.y2 - this.y1;
       
-      const len = Math.sqrt(this.luv[0] * this.luv[0] + this.luv[1] * this.luv[1]);
+      const len = Math.sqrt(this.luv[0] * this.luv[0] + this.luv[1] * this.luv[1])*1;
       this.lw = (this.z2 - this.z1)/len;
 
       for(let t = 0; t < len; t++) {

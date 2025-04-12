@@ -211,41 +211,6 @@ export class SciMonk {
     return new Geometry(triangles, [1,1,1,255], 1);
   }
 
-  toHexColour(colour){
-    return "#"+this.decToHex(colour[0])+this.decToHex(colour[1])+this.decToHex(colour[2]); 
-  }
-
-  decToHex(input){
-    var output = "";
-    var value = input;
-    var quotient = 1;
-    var remainder = 0;
-    while (quotient != 0){
-      quotient = 0;
-      if (((value - 16) > 0)){
-        quotient = (value - value%16) / 16;
-        remainder = (value %= (quotient * 16));
-        value = quotient;
-      }else{
-        remainder = value;
-      }
-      output = this.hexParse(remainder) + output;
-    }
-    return output;
-  }
-
-  hexParse(dec){
-    if(dec >= 10 && dec <=15){
-        var d = dec%10;
-        return "abcdef".substring(d,d+1);
-    }else if(dec == 16)
-      return 10;
-    else{
-      return dec;
-    }
-  }
-
-
 }
 
 //var sciMonk = new SciMonk();

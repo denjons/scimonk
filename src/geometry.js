@@ -349,8 +349,16 @@ export class Geometry {
     return new Geometry(triangles, 'custom', colour, id);
   }
 
-  static box(pos, size, colour, id) {
-    const g = new Geometry(boxTriangles(pos[0], pos[1], pos[2], size[0], size[1],size[2]), 'box' , colour, id);
+  /**
+   * Creates a box geometry
+   * @param {Array} position - The position of the box [x,y,z]
+   * @param {Array} size - The size of the box [width, height, depth]
+   * @param {Array} colour - The colour of the box [r,g,b,a]
+   * @param {Number} id - The id of the box
+   * @returns {Geometry}
+   */
+  static box(position, size, colour, id) {
+    const g = new Geometry(boxTriangles(position[0], position[1], position[2], size[0], size[1],size[2]), 'box' , colour, id);
     g.computeNormals();
     return g;
   }
