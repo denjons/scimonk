@@ -1,6 +1,4 @@
-import { 
-  addV, Vx, vLen, uToV,
-} from './graph.js';
+import { TextUtils } from './textUtils.js';
 
 export class ScimonkView {
   imageData;
@@ -8,11 +6,11 @@ export class ScimonkView {
   height = 0;
   canvas;
   ctx;
-  backgroundColour = [200,150,150,255];
   it = 1;
   undefinedShapeId = -1;
+  texts = new Array();
 
-  constructor(canvas) {
+  constructor(canvas, properties) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this.width = canvas.width;
@@ -22,6 +20,10 @@ export class ScimonkView {
     this.data = this.imageData.data;
     this.depthMap = new Float32Array(this.width*this.height*3);
     this.iniDepthMap();
+    this.properties = {
+      backgroundColour: properties.backgroundColour || [200,150,150,255],
+      backgroundType: properties.backgroundType || 'fill',
+    }
   }
 
   resetFill(colur) {
@@ -33,15 +35,113 @@ export class ScimonkView {
     }
   }
 
+  /**
+   * Fills the image with a random colour
+   * @param {Array} colour - The colour to fill the image with  
+   */
+  resetFillRandom(colour) { 
+    for (let i = 0; i < this.imageData.data.length; i += 4) {
+      this.imageData.data[i] = colour[0] + Math.random() * (255 - colour[0]);
+      this.imageData.data[i + 1] = colour[1] + Math.random() * (255 - colour[1]);
+      this.imageData.data[i + 2] = colour[2] + Math.random() * (255 - colour[2]);
+      this.imageData.data[i + 3] = colour[3];
+    }
+  }
+
+  resetFillPattern(colour) {
+    const baseColour = [...colour];
+    const minBubbleSize = 20;
+    const maxBubbleSize = 200;
+    const bubbleCount = 30;
+    
+    // First fill with base color
+    for (let i = 0; i < this.imageData.data.length; i += 4) {
+      this.imageData.data[i] = baseColour[0];
+      this.imageData.data[i + 1] = baseColour[1];
+      this.imageData.data[i + 2] = baseColour[2];
+      this.imageData.data[i + 3] = baseColour[3];
+    }
+    
+    // Create random bubbles
+    for (let i = 0; i < bubbleCount; i++) {
+      // Random bubble properties
+      const size = minBubbleSize + Math.random() * (maxBubbleSize - minBubbleSize);
+      const x = Math.random() * this.width;
+      const y = Math.random() * this.height;
+      const speedX = (Math.random() - 0.5) * 2;
+      const speedY = (Math.random() - 0.5) * 2;
+      
+      // Random bubble color
+      const bubbleColor = [
+        Math.random() * 255,
+        Math.random() * 255,
+        Math.random() * 255,
+        255
+      ];
+      
+      // Calculate bubble position with animation
+      const animX = (x + speedX * this.it) % this.width;
+      const animY = (y + speedY * this.it) % this.height;
+      
+      // Draw the bubble
+      for (let py = -size; py <= size; py++) {
+        for (let px = -size; px <= size; px++) {
+          const dist = Math.sqrt(px * px + py * py);
+          if (dist <= size) {
+            // Calculate position with wrapping
+            const drawX = (Math.floor(animX + px) + this.width) % this.width;
+            const drawY = (Math.floor(animY + py) + this.height) % this.height;
+            
+            // Calculate alpha based on distance from center
+            const alpha = 1 - (dist / size);
+            
+            const index = (drawY * this.width + drawX) * 4;
+            
+            // Blend bubble color with background
+            this.imageData.data[index] = 
+              bubbleColor[0] * alpha + this.imageData.data[index] * (1 - alpha);
+            this.imageData.data[index + 1] = 
+              bubbleColor[1] * alpha + this.imageData.data[index + 1] * (1 - alpha);
+            this.imageData.data[index + 2] = 
+              bubbleColor[2] * alpha + this.imageData.data[index + 2] * (1 - alpha);
+          }
+        }
+      }
+    }
+  }
+
+  addText(text, properties) {
+    this.texts.push({
+      text: text,
+      fontFamily: properties.fontFamily || 'Arial',
+      fontWeight: properties.fontWeight || 'normal',
+      fontSize: properties.fontSize || 16,
+      textColor: properties.textColor || [0, 0, 0, 255],
+      position: properties.position || [0, 0],
+    });
+
+  }
+
   // Resets the image to the background colour
-  reset(){
-    this.resetFill(this.backgroundColour);
+  reset(){  
+    if(this.properties.backgroundType === 'random'){
+      this.resetFillRandom(this.properties.backgroundColour);
+    } else if(this.properties.backgroundType === 'pattern') {
+      this.resetFillPattern(this.properties.backgroundColour);
+    } else {
+      this.resetFill(this.properties.backgroundColour);
+    }
     //this.imageData = this.ctx.createImageData(this.width, this.height); 
   }
 
   // updates the image with the recent changes
   update(){
     this.ctx.putImageData(this.imageData, 0, 0); // at coords 0,0
+    for(let text of this.texts){
+      this.ctx.font = `${text.fontWeight} ${text.fontSize}px ${text.fontFamily}`;
+      this.ctx.fillStyle = TextUtils.toHexColour(text.textColor);
+      this.ctx.fillText(text.text, text.position[0], text.position[1]);
+    }
     this.it++;
   }
 

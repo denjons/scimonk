@@ -12,6 +12,7 @@ import {
   vectorAngle
 } from './graph.js';
 import { DrawModes } from './modes.js';
+import { TextUtils } from './textUtils.js';
 
 export class SciMonk {
   view;
@@ -38,6 +39,11 @@ export class SciMonk {
   add(geometry) {
      this.model.geometries.push(geometry);
   }
+
+  addText(text, properties) {
+    this.view.addText(text, properties);
+  }
+
 
   rotate(vector) {
     for(let geometry of this.model.geometries){

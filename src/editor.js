@@ -164,17 +164,24 @@ function initBag(){
 */
 
 function initBroccoli(){
-  view = new ScimonkView(document.getElementById("canvas"), 75);
+  view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [200,150,150,255], backgroundType: 'pattern'});
   drawModes = new DrawModes(true, false);
   drawModes.overrideLineColour([3,3,3,255]);
   sciMonk = new SciMonk(view, drawModes);
-  const broccoliFactory = new BroccoliFactory(50, 20, 6, [50,200,50,255], 1);
-  const broccoli = broccoliFactory.createBroccoli([0,0,0], [200,200,200]);
+
+  // broccoli
+  const broccoliFactory = new BroccoliFactory(30, 15, 6, [50,200,50,255], 1);
+  const broccoli = broccoliFactory.createBroccoli([0,50,0], [100,100,100]);
   sciMonk.add(broccoli);
+
+  // line broccoli
   const broccoliCopy = broccoli.copy();
- // broccoliCopy.setDrawModes(new DrawModes(false, true));
- // broccoliCopy.scale([1.01,1.01,1.01]);
-  //sciMonk.add(broccoliCopy);
+  broccoliCopy.setDrawModes(new DrawModes(false, true));
+  broccoliCopy.scale([1.01,1.01,1.01]);
+  sciMonk.add(broccoliCopy);
+
+  sciMonk.addText("sciMonk", {fontFamily: 'Arial', fontSize: 256, fontWeight: 'bold', textColor: [3,3,3,255], position: [275, 950]});
+  
   sciMonk.render();
   running = true;
   updateTriangleCount();
@@ -182,6 +189,7 @@ function initBroccoli(){
 }
 
 function runBroccoli(){
+  drawModes.overrideLineColour([255*Math.random() ,255*Math.random(),255*Math.random(),255]);
   sciMonk.rotate([-0.05,0,0]);
   let startTime = performance.now();
   sciMonk.render();
@@ -189,7 +197,7 @@ function runBroccoli(){
   let timeTaken = endTime - startTime;  
   document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
   
-  drawModes.overrideFillColour([255*Math.random(),255*Math.random(),255*Math.random(),255]);
+  //drawModes.overrideFillColour([255*Math.random(),255*Math.random(),255*Math.random(),255]);
 
   if(running) {
     setTimeout(runBroccoli, 25);
@@ -198,37 +206,16 @@ function runBroccoli(){
   }
 }
 
-/*
-  MAIN
-*/
-
-function initGridBox(){
-  view = new ScimonkView(document.getElementById("canvas"), 75);
-  drawModes = new DrawModes(true, true);
-  sciMonk = new SciMonk(view, drawModes);
-  box = Geometry.gridBox([0,0,0], [100,100,100], 3, [200,200,200,255], 1);
-  sciMonk.add(box);
-  sciMonk.rotate([0.05,0.05,0.05]);
-  sciMonk.render();
-  running = true;
-  updateTriangleCount();
-  runGridBox();
-}
-
-function runGridBox(){
-  sciMonk.rotate([0.05,0,0]);
-  sciMonk.render();
-  if(running) {
-    setTimeout(runGridBox, 25);
-  }
-}
 
 function initBox(){
-  view = new ScimonkView(document.getElementById("canvas"), 75);
+  view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [200,150,150,255], backgroundType: 'pattern'});
   drawModes = new DrawModes(true, false);
   drawModes.overrideLineColour([3,3,3,255]);
   sciMonk = new SciMonk(view, drawModes);
-  const box = Geometry.box([0,0,0], [150,150,150], [200,200,200,255], 1);
+
+  sciMonk.addText("sciMonk", {fontFamily: 'Arial', fontSize: 256, fontWeight: 'bold', textColor: [3,3,3,255], position: [275, 950]});
+
+  const box = Geometry.box([0,50,0], [150,150,150], [200,200,200,255], 1);
   sciMonk.add(box);
   const box2 = box.copy();
   box2.setDrawModes(new DrawModes(false, true));
@@ -250,11 +237,8 @@ function runBox(){
   // Update render time field
   document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
   
-  // Update triangle count
-
-
   let startTime2 = performance.now();
-  sciMonk.rotate([0.05,0.05,0.05]);
+  sciMonk.rotate([0.05,0,0.05]);
   let endTime2 = performance.now();
   let timeTaken2 = endTime2 - startTime2;
   console.log(`Rotate time: ${timeTaken2} milliseconds`);
@@ -324,9 +308,8 @@ function runEmpty(){
 
 
 function initText(){
-  
   view = new ScimonkView(document.getElementById("canvas"), 75);
-  drawModes = new DrawModes(true, false);
+  drawModes = new DrawModes(false, true);
   sciMonk = new SciMonk(view, drawModes);
   const text = new TextUtils({fontSize: 64, fontWeight: 'bold' });
   const text2 = text.textTo3D("10杯", [10, 10, 10], [3,3,3,255], 1);
@@ -353,6 +336,7 @@ function runText(){
 }
 
 
+
 export function init(){
   // Initialize text fields with default values
   document.getElementById('renderTime').value = '0.00 ms';
@@ -361,11 +345,11 @@ export function init(){
   
   //initBag();
   //initBroccoli();
-  //initBox();
+  initBox();
   //initGridBox();
   //initSphere();
   //initEmpty();
-  initText();
+  //initText();
 }
 
 

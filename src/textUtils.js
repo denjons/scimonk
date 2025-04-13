@@ -65,7 +65,13 @@ export class TextUtils {
     const scaleX = boxSize[0];
     const scaleY = boxSize[1];
 
-    // Iterate through each pixel
+    // Create a 2D array to store which pixels are part of the text
+    const textPixels = new Array(height);
+    for (let y = 0; y < height; y++) {
+      textPixels[y] = new Array(width).fill(false);
+    }
+
+    // First pass: mark which pixels are part of the text
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const index = (y * width + x) * 4;
@@ -73,22 +79,40 @@ export class TextUtils {
         const g = pixels[index + 1];
         const b = pixels[index + 2];
 
-        // Check for exact color match
         if (r === textColor[0] && g === textColor[1] && b === textColor[2]) {
+          textPixels[y][x] = true;
+        }
+      }
+    }
+
+    // Second pass: create boxes with face culling
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (textPixels[y][x]) {
           pixelCount++;
           
           // Calculate the position of the box with proper scaling
-          // Center the text in 3D space and scale according to box size
           const posX = (x - width / 2) * scaleX;
           const posY = (height / 2 - y) * scaleY; // Flip Y axis to match canvas coordinates
           const posZ = 0;
 
-          // Create a box for this pixel
-          const box = Geometry.box(
+          // Check neighboring pixels to determine which faces to include
+          const faces = {
+            front: true,  // Always include front face
+            back: true,   // Always include back face
+            left: !(x > 0 && textPixels[y][x - 1]),  // No left face if there's a pixel to the left
+            right: !(x < width - 1 && textPixels[y][x + 1]),  // No right face if there's a pixel to the right
+            top: !(y > 0 && textPixels[y - 1][x]),  // No top face if there's a pixel above
+            bottom: !(y < height - 1 && textPixels[y + 1][x])  // No bottom face if there's a pixel below
+          };
+
+          // Create a box for this pixel with face culling
+          const box = Geometry.boxFaces(
             [posX, posY, posZ],
             boxSize,
             boxColor,
-            id
+            id,
+            faces
           );
 
           boxes.push(box);

@@ -10,26 +10,67 @@ import {
 
 
 // Helper functions
-function boxTriangles(x, y, z, w, h, d) {
-	w=w/2;
-	h=h/2;
-	d=d/2;
-  var array = new Array();
-  // front
-  squareToTriangles([[x-w,y-h,z-d],[x-w,y+h,z-d],[x+w,y+h,z-d],[x+w,y-h,z-d]], array);
-    // left
-  squareToTriangles([[x-w,y+h,z+d],[x-w,y+h,z-d],[x-w,y-h,z-d],[x-w,y-h,z+d]], array);
-    // bottom
-  squareToTriangles([[x-w,y-h,z+d],[x-w,y-h,z-d],[x+w,y-h,z-d],[x+w,y-h,z+d]], array);
+/**
+ * Creates a box geometry
+ * @param {number} x - The x coordinate of the box
+ * @param {number} y - The y coordinate of the box
+ * @param {number} z - The z coordinate of the box
+ * @param {number} w - The width of the box
+ * @param {number} h - The height of the box
+ * @param {number} d - The depth of the box
+ * @param {Object} faces - Object specifying which faces to include
+ * @param {boolean} [faces.front=true] - Whether to include the front face
+ * @param {boolean} [faces.back=true] - Whether to include the back face
+ * @param {boolean} [faces.left=true] - Whether to include the left face
+ * @param {boolean} [faces.right=true] - Whether to include the right face
+ * @param {boolean} [faces.top=true] - Whether to include the top face
+ * @param {boolean} [faces.bottom=true] - Whether to include the bottom face
+ * @returns {Array}
+ */
+function boxTriangles(x, y, z, w, h, d, faces = {}) {
+  // Default all faces to true if not specified
+  const {
+    front = true,
+    back = true,
+    left = true,
+    right = true,
+    top = true,
+    bottom = true
+  } = faces;
 
-   // back
-   squareToTriangles([[x-w,y-h,z+d],[x+w,y-h,z+d],[x+w,y+h,z+d],[x-w,y+h,z+d]], array);
-    // right
-   squareToTriangles([[x+w,y+h,z-d],[x+w,y+h,z+d],[x+w,y-h,z+d],[x+w,y-h,z-d]], array);
-    // top
-  squareToTriangles([[x-w,y+h,z-d],[x-w,y+h,z+d],[x+w,y+h,z+d],[x+w,y+h,z-d]], array);
+  w = w/2;
+  h = h/2;
+  d = d/2;
+  var array = new Array();
+
+  if (front) {
+    squareToTriangles([[x-w,y-h,z-d],[x-w,y+h,z-d],[x+w,y+h,z-d],[x+w,y-h,z-d]], array);
+  }
+  
+  if (left) {
+    squareToTriangles([[x-w,y+h,z+d],[x-w,y+h,z-d],[x-w,y-h,z-d],[x-w,y-h,z+d]], array);
+  }
+  
+  if (bottom) {
+    squareToTriangles([[x-w,y-h,z+d],[x-w,y-h,z-d],[x+w,y-h,z-d],[x+w,y-h,z+d]], array);
+  }
+
+  if (back) {
+    squareToTriangles([[x-w,y-h,z+d],[x+w,y-h,z+d],[x+w,y+h,z+d],[x-w,y+h,z+d]], array);
+  }
+  
+  if (right) {
+    squareToTriangles([[x+w,y+h,z-d],[x+w,y+h,z+d],[x+w,y-h,z+d],[x+w,y-h,z-d]], array);
+  }
+  
+  if (top) {
+    squareToTriangles([[x-w,y+h,z-d],[x-w,y+h,z+d],[x+w,y+h,z+d],[x+w,y+h,z-d]], array);
+  }
+
   return array;
 }
+
+
 
 
 
@@ -359,6 +400,21 @@ export class Geometry {
    */
   static box(position, size, colour, id) {
     const g = new Geometry(boxTriangles(position[0], position[1], position[2], size[0], size[1],size[2]), 'box' , colour, id);
+    g.computeNormals();
+    return g;
+  }
+
+    /**
+   * Creates a box geometry
+   * @param {Array} position - The position of the box [x,y,z]
+   * @param {Array} size - The size of the box [width, height, depth]
+   * @param {Array} colour - The colour of the box [r,g,b,a]
+   * @param {Number} id - The id of the box
+   * @param {Object} faces - The faces of the box
+   * @returns {Geometry}
+   */
+  static boxFaces(position, size, colour, id, faces) {
+    const g = new Geometry(boxTriangles(position[0], position[1], position[2], size[0], size[1],size[2], faces), 'box' , colour, id);
     g.computeNormals();
     return g;
   }
