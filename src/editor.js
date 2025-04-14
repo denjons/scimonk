@@ -190,8 +190,8 @@ function initBroccoli(){
 
 function runBroccoli(){
   drawModes.overrideLineColour([255*Math.random() ,255*Math.random(),255*Math.random(),255]);
-  sciMonk.rotate([-0.05,0,0]);
   let startTime = performance.now();
+  sciMonk.rotate([-0.05,0,0]);
   sciMonk.render();
   let endTime = performance.now();
   let timeTaken = endTime - startTime;  
@@ -209,7 +209,7 @@ function runBroccoli(){
 
 function initBox(){
   view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [200,150,150,255], backgroundType: 'pattern'});
-  drawModes = new DrawModes(true, false);
+  drawModes = new DrawModes(false, true);
   drawModes.overrideLineColour([3,3,3,255]);
   sciMonk = new SciMonk(view, drawModes);
 
@@ -217,10 +217,12 @@ function initBox(){
 
   const box = Geometry.box([0,50,0], [150,150,150], [200,200,200,255], 1);
   sciMonk.add(box);
+  /*
   const box2 = box.copy();
   box2.setDrawModes(new DrawModes(false, true));
   box2.scale([1.01,1.01,1.01]);
   sciMonk.add(box2);
+  */
   sciMonk.render();
   running = true;
   updateTriangleCount();
@@ -344,8 +346,8 @@ export function init(){
   document.getElementById('triangles').value = '0';
   
   //initBag();
-  //initBroccoli();
-  initBox();
+  initBroccoli();
+  //initBox();
   //initGridBox();
   //initSphere();
   //initEmpty();

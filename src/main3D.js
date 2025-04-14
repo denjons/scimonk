@@ -8,15 +8,16 @@
 
 import { Geometry, Triangle } from './geometry.js';
 import { 
-  addV, Vx, planeIntersection, planeNormal, uToV,
+  addV, Vx, planeNormal, uToV,
   vectorAngle
 } from './graph.js';
 import { DrawModes } from './modes.js';
-import { TextUtils } from './textUtils.js';
+import { Plane } from './v2/plane.js';
 
 export class SciMonk {
   view;
   drawModes = new DrawModes(true, true, false);
+  plane = new Plane({width: 10000, depth: -1000});
 
   constructor(view, drawModes) {
     this.model = new Object();
@@ -58,7 +59,7 @@ export class SciMonk {
         //this.view.nodeVector(triangle.normalVector[0], triangle.normalVector[1],[100,50,50,250],false);
         var point;
         if(this.drawModes.skipBackFacingTriangles){
-          point = this.normalIntersectsPlane(triangle, 4000, -1000, 100000);
+          point = this.plane.normalIntersectsPlane(triangle, 4000);
         }
         if(!point){
           if(geometry.drawModes ? geometry.drawModes.fill : this.drawModes.fill){
@@ -82,21 +83,7 @@ export class SciMonk {
     this.view.update();
   }
 
-  /**
-   * Checks if the triangle normal intersects a square plane of at depth
-   * 
-   * @param {Triangle} triangle 
-   * @param {number} width 
-   * @param {number} depth 
-   */
-  normalIntersectsPlane(triangle, width, depth, normalLength){
-    const w = width/2;
-    const uv = triangle.unitVector();
-    const point = planeIntersection(triangle.normalVector[0], addV(triangle.normalVector[0], Vx(uv,normalLength)), [[w,w,depth],[-w,w,depth],[-w,-w,depth],[w,-w,depth]]);
-    if(((point[0] < w && point[0] > -w) && (point[1] < w && point[1] > -w)) && uv[2] > 0){
-      return point;
-    }
-  }
+
 
 
 
