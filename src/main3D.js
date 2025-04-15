@@ -7,12 +7,9 @@
 */
 
 import { Geometry, Triangle } from './geometry.js';
-import { 
-  addV, Vx, planeNormal, uToV,
-  vectorAngle
-} from './graph.js';
 import { DrawModes } from './modes.js';
 import { Plane } from './v2/plane.js';
+import { Light } from './v2/light.js';
 
 export class SciMonk {
   view;
@@ -22,10 +19,6 @@ export class SciMonk {
   constructor(view, drawModes) {
     this.model = new Object();
     this.model.geometries = new Array();
-    this.model.name="no title";
-    this.model.user="Anonymous";
-    this.model.modelId = 0;
-    this.model.nr = 0;
     this.view = view;
 
     if(drawModes){
@@ -33,6 +26,7 @@ export class SciMonk {
     }
     
     this.lightVector = [-this.view.width/2,this.view.height/2,-this.view.Depth];
+    this.light = new Light(this.lightVector, this.view.Depth);
     this.alpha = 255;
 
   }
@@ -63,7 +57,7 @@ export class SciMonk {
         }
         if(!point){
           if(geometry.drawModes ? geometry.drawModes.fill : this.drawModes.fill){
-            var colour = this.setAlpha(triangle, this.drawModes.fillColour ? this.drawModes.fillColour : geometry.colour);
+            var colour = this.light.setLight(triangle, this.drawModes.fillColour ? this.drawModes.fillColour : geometry.colour);
             this.view.fill(triangle, colour, geometry.id);
           }
           if(geometry.drawModes ? geometry.drawModes.lines : this.drawModes.lines){
@@ -82,10 +76,6 @@ export class SciMonk {
     }
     this.view.update();
   }
-
-
-
-
 
 
   /*
@@ -115,28 +105,6 @@ export class SciMonk {
     return (this.view.width/this.Depth)*z;
   }
 
-  setAlpha(tringle,colour){
-    var origo = tringle.origin();
-    var normal = planeNormal(tringle.points,origo);
-    
-    var lv = uToV(origo,Vx(this.lightVector,0.5));
-    var nv = uToV(origo,addV(origo,normal));
-    
-    var persp = uToV([0,0,-this.view.Depth/2],origo)
-    var nv1 = vectorAngle(nv,persp);
-    var nv2 = vectorAngle(uToV(origo,addV(origo,Vx(normal,-1))),persp);
-    
-    var a=0;
-    if(nv1 <= nv2)
-    a = vectorAngle(nv,lv);
-    else
-    a = vectorAngle(Vx(nv,-1),lv);
-    
-    return [Math.max(colour[0]-100*Math.cos(a),1), 
-            Math.max(colour[1]-100*Math.cos(a),1),
-            Math.max(colour[2]-100*Math.cos(a),1),
-            200+55*Math.cos(a)];
-  }
 
   cross=function(node,w,colour){
     w = w/2;

@@ -164,7 +164,7 @@ function initBag(){
 */
 
 function initBroccoli(){
-  view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [200,150,150,255], backgroundType: 'pattern'});
+  view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [200,150,150,255]});
   drawModes = new DrawModes(true, false);
   drawModes.overrideLineColour([3,3,3,255]);
   sciMonk = new SciMonk(view, drawModes);
@@ -175,10 +175,12 @@ function initBroccoli(){
   sciMonk.add(broccoli);
 
   // line broccoli
+  /*
   const broccoliCopy = broccoli.copy();
   broccoliCopy.setDrawModes(new DrawModes(false, true));
   broccoliCopy.scale([1.01,1.01,1.01]);
   sciMonk.add(broccoliCopy);
+  */
 
   sciMonk.addText("sciMonk", {fontFamily: 'Arial', fontSize: 256, fontWeight: 'bold', textColor: [3,3,3,255], position: [275, 950]});
   
@@ -253,8 +255,7 @@ function runBox(){
 }
 
 function initSphere(){
-  view = new ScimonkView(document.getElementById("canvas"), 75);
-  view.fill([200,150,150,255]);
+  view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [200,150,150,255], backgroundType: 'pattern'});
   drawModes = new DrawModes(true, false);
   drawModes.overrideLineColour([3,3,3,255]);
   drawModes.overrideFillColour([170,170,170,255]);
@@ -290,7 +291,7 @@ function runSphere(){
 
 function initEmpty(){
   view = new ScimonkView(document.getElementById("canvas"), 75);
-  drawModes = new DrawModes(false, true);
+  drawModes = new DrawModes(true, false);
   drawModes.overrideLineColour([3,3,3,255]);
   sciMonk = new SciMonk(view, drawModes);
   runEmpty();
