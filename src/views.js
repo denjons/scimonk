@@ -110,6 +110,13 @@ export class ScimonkView {
     }
   }
 
+  cross(node,w,colour){
+    w = w/2;
+    this.nodeVector([node[0]-w,node[1],node[2]],[node[0]+w,node[1],node[2]], colour);
+    this.nodeVector([node[0],node[1]-w,node[2]],[node[0],node[1]+w,node[2]], colour);
+    this.nodeVector([node[0],node[1],node[2]-w],[node[0],node[1],node[2]+w], colour);
+  }
+
   addText(text, properties) {
     this.texts.push({
       text: text,

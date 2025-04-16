@@ -58,9 +58,9 @@ function readStlFile(event) {
 }
 
 function parseSTL(arrayBuffer) {
-  const geometry = sciMonk.parseSTL(arrayBuffer);
+  const geometry = sciMonk.parseSTL(arrayBuffer, [200,200,200,255]);
   geometry.center([0,0,0]);
-  geometry.scale([2,2,2]);
+  geometry.scale([6,6,6]);
   geometry.rotate([0,Math.PI/2,0]);
   geometry.rotate([Math.PI/2,0,0]);
   sciMonk.add(geometry);
@@ -175,12 +175,12 @@ function initBroccoli(){
   sciMonk.add(broccoli);
 
   // line broccoli
-  /*
+  
   const broccoliCopy = broccoli.copy();
   broccoliCopy.setDrawModes(new DrawModes(false, true));
   broccoliCopy.scale([1.01,1.01,1.01]);
   sciMonk.add(broccoliCopy);
-  */
+  
 
   sciMonk.addText("sciMonk", {fontFamily: 'Arial', fontSize: 256, fontWeight: 'bold', textColor: [3,3,3,255], position: [275, 950]});
   
@@ -191,7 +191,7 @@ function initBroccoli(){
 }
 
 function runBroccoli(){
-  drawModes.overrideLineColour([255*Math.random() ,255*Math.random(),255*Math.random(),255]);
+ // drawModes.overrideLineColour([255*Math.random() ,255*Math.random(),255*Math.random(),255]);
   let startTime = performance.now();
   sciMonk.rotate([-0.05,0,0]);
   sciMonk.render();
@@ -211,13 +211,13 @@ function runBroccoli(){
 
 function initBox(){
   view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [200,150,150,255], backgroundType: 'pattern'});
-  drawModes = new DrawModes(false, true);
+  drawModes = new DrawModes(true, true);
   drawModes.overrideLineColour([3,3,3,255]);
   sciMonk = new SciMonk(view, drawModes);
 
-  sciMonk.addText("sciMonk", {fontFamily: 'Arial', fontSize: 256, fontWeight: 'bold', textColor: [3,3,3,255], position: [275, 950]});
+ // sciMonk.addText("sciMonk", {fontFamily: 'Arial', fontSize: 256, fontWeight: 'bold', textColor: [3,3,3,255], position: [275, 950]});
 
-  const box = Geometry.box([0,50,0], [150,150,150], [200,200,200,255], 1);
+  const box = Geometry.box([0,0,0], [150,150,150], [200,200,200,255], 1);
   sciMonk.add(box);
   /*
   const box2 = box.copy();
@@ -233,22 +233,18 @@ function initBox(){
 
 function runBox(){
   let startTime = performance.now();  
+  sciMonk.rotate([0.05,0.05,0.05]);
   sciMonk.render();
   let endTime = performance.now();
   let timeTaken = endTime - startTime;
-  console.log(`Render time: ${timeTaken} milliseconds`);
   
   // Update render time field
   document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
   
-  let startTime2 = performance.now();
-  sciMonk.rotate([0.05,0,0.05]);
-  let endTime2 = performance.now();
-  let timeTaken2 = endTime2 - startTime2;
-  console.log(`Rotate time: ${timeTaken2} milliseconds`);
+  
 
   if(running) {
-    setTimeout(runBox, 25);
+    setTimeout(runBox, 50);
   } else {
     view.finish();
   }

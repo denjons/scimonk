@@ -1,17 +1,14 @@
-import { addV, Vx} from '../graph.js';
-
+import { addV, Vx, getOrigo} from '../graph.js';
 
 export class Plane {
   points;
   properties;
-  constructor(properties) {
-    this.properties = {
-      width: 100000 || properties.width,
-      depth: -1000 || properties.depth,
-    }
-    const w = this.properties.width/2;
-    const depth = this.properties.depth;
-    this.points = new Float32Array([w,w,depth,-w,w,depth,-w,-w,depth,w,-w,depth]);
+  constructor(points, properties) {
+   
+    this.width = 5000 || properties.width/2,
+    this.origin = getOrigo([[points[0],points[1],points[2]],[points[3],points[4],points[5]],[points[6],points[7],points[8]]]);
+    this.points = new Float32Array(points);
+    this.calculateNormal(this.points);
   }
 
     /**
@@ -22,16 +19,57 @@ export class Plane {
    * @param {number} depth 
    */
   normalIntersectsPlane(triangle, normalLength){
-    const w = this.properties.width/2;
+    const w = this.width;
     const uv = triangle.unitVector();
-    const point = planeIntersection(triangle.normalVector[0], addV(triangle.normalVector[0], Vx(uv,normalLength)), this.points);
-    if(((point[0] < w && point[0] > -w) && (point[1] < w && point[1] > -w)) && uv[2] > 0){
+    const point = this.planeIntersection(triangle.normalVector[0], addV(triangle.normalVector[0], Vx(uv,normalLength)), this.points);
+    
+    // Calculate vector from triangle origin to plane origin
+    const toPlane = [
+      this.origin[0] - triangle.normalVector[0][0],
+      this.origin[1] - triangle.normalVector[0][1],
+      this.origin[2] - triangle.normalVector[0][2]
+    ];
+    
+    // Calculate dot product between triangle normal and vector to plane
+    const toPlaneDot = uv[0] * toPlane[0] + uv[1] * toPlane[1] + uv[2] * toPlane[2];
+    
+    // Only return intersection point if it's within bounds AND the normal is pointing towards the plane
+    if(((point[0] < w && point[0] > -w) && (point[1] < w && point[1] > -w)) && toPlaneDot > 0){
       return point;
     }
   }
 
-}
-  /**
+  edge1 = new Float32Array(3);
+  edge2 = new Float32Array(3);
+  normal = new Float32Array(3);
+
+  calculateNormal(plane){
+    // Calculate plane normal using cross product of two edges
+    this.edge1[0] = plane[3] - plane[0];
+    this.edge1[1] = plane[4] - plane[1];
+    this.edge1[2] = plane[5] - plane[2];
+    
+    this.edge2[0] = plane[6] - plane[0];
+    this.edge2[1] = plane[7] - plane[1];
+    this.edge2[2] = plane[8] - plane[2];
+  
+    // Cross product
+    this.normal[0] = this.edge1[1]*this.edge2[2] - this.edge1[2]*this.edge2[1];
+    this.normal[1] = this.edge1[2]*this.edge2[0] - this.edge1[0]*this.edge2[2];
+    this.normal[2] = this.edge1[0]*this.edge2[1] - this.edge1[1]*this.edge2[0];
+    
+  // Normalize normal vector
+    const normalLength = Math.sqrt(this.normal[0]*this.normal[0] + this.normal[1]*this.normal[1] + this.normal[2]*this.normal[2]);
+    this.normal[0] /= normalLength;
+    this.normal[1] /= normalLength;
+    this.normal[2] /= normalLength;
+  }
+
+
+  d = new Float32Array(3);
+
+
+    /**
  * 
  * Returns the intersection point of v1 -> v2 on plane.
  * 
@@ -49,54 +87,33 @@ export class Plane {
  * 𝑥=𝑜1+𝑑1𝑡,𝑦=𝑜2+𝑑2𝑡𝑧=𝑜3+𝑑3𝑡
  */
 
-// Pre-allocate Float32Arrays for reuse
-const _d = new Float32Array(3);
-const _edge1 = new Float32Array(3);
-const _edge2 = new Float32Array(3);
-const _normal = new Float32Array(3);
+  planeIntersection(p1, p2, plane) {
+    // Calculate direction vector and normalize
+    this.d[0] = p2[0] - p1[0];
+    this.d[1] = p2[1] - p1[1];
+    this.d[2] = p2[2] - p1[2];
+    const length = Math.sqrt(this.d[0]*this.d[0] + this.d[1]*this.d[1] + this.d[2]*this.d[2]);
+    this.d[0] /= length;
+    this.d[1] /= length;
+    this.d[2] /= length;
 
-function planeIntersection(p1, p2, plane) {
-  // Calculate direction vector and normalize
-  _d[0] = p2[0] - p1[0];
-  _d[1] = p2[1] - p1[1];
-  _d[2] = p2[2] - p1[2];
-  const length = Math.sqrt(_d[0]*_d[0] + _d[1]*_d[1] + _d[2]*_d[2]);
-  _d[0] /= length;
-  _d[1] /= length;
-  _d[2] /= length;
+    // Calculate intersection parameter t
+    const d1 = (this.normal[0]*plane[0] + this.normal[1]*plane[1] + this.normal[2]*plane[2]) - 
+              (this.normal[0]*p1[0] + this.normal[1]*p1[1] + this.normal[2]*p1[2]);
+    const d2 = this.normal[0]*this.d[0] + this.normal[1]*this.d[1] + this.normal[2]*this.d[2];
+    const t = d1/d2;
 
-  // Calculate plane normal using cross product of two edges
-  _edge1[0] = plane[3] - plane[0];
-  _edge1[1] = plane[4] - plane[1];
-  _edge1[2] = plane[5] - plane[2];
-  
-  _edge2[0] = plane[6] - plane[0];
-  _edge2[1] = plane[7] - plane[1];
-  _edge2[2] = plane[8] - plane[2];
-  
-  // Cross product
-  _normal[0] = _edge1[1]*_edge2[2] - _edge1[2]*_edge2[1];
-  _normal[1] = _edge1[2]*_edge2[0] - _edge1[0]*_edge2[2];
-  _normal[2] = _edge1[0]*_edge2[1] - _edge1[1]*_edge2[0];
-  
-  // Normalize normal vector
-  const normalLength = Math.sqrt(_normal[0]*_normal[0] + _normal[1]*_normal[1] + _normal[2]*_normal[2]);
-  _normal[0] /= normalLength;
-  _normal[1] /= normalLength;
-  _normal[2] /= normalLength;
+    // Return intersection point
+    return [
+      p1[0] + t*this.d[0],
+      p1[1] + t*this.d[1],
+      p1[2] + t*this.d[2]
+    ];
+  }
 
-  // Calculate intersection parameter t
-  const d1 = (_normal[0]*plane[0] + _normal[1]*plane[1] + _normal[2]*plane[2]) - 
-             (_normal[0]*p1[0] + _normal[1]*p1[1] + _normal[2]*p1[2]);
-  const d2 = _normal[0]*_d[0] + _normal[1]*_d[1] + _normal[2]*_d[2];
-  const t = d1/d2;
-
-  // Return intersection point
-  return [
-    p1[0] + t*_d[0],
-    p1[1] + t*_d[1],
-    p1[2] + t*_d[2]
-  ];
 }
+
+
+
 
 

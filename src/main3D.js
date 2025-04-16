@@ -1,11 +1,3 @@
-/*
-	SCIMONK
-	BETA VERSION_1.0
-	BY DENNIS JÖNSSON,
-	17-03-2014
-
-*/
-
 import { Geometry, Triangle } from './geometry.js';
 import { DrawModes } from './modes.js';
 import { Plane } from './v2/plane.js';
@@ -14,7 +6,8 @@ import { Light } from './v2/light.js';
 export class SciMonk {
   view;
   drawModes = new DrawModes(true, true, false);
-  plane = new Plane({width: 10000, depth: -1000});
+  plane = new Plane([-1000,-1000,1000,0,1000,1000,1000,-1000,1000], {width: 5000});
+  light = new Light(new Plane([-1000,-1000,-1000,0,1000,-1000,1000,-1000,-1000], {width: 10000}));
 
   constructor(view, drawModes) {
     this.model = new Object();
@@ -24,11 +17,6 @@ export class SciMonk {
     if(drawModes){
       this.drawModes = drawModes;
     }
-    
-    this.lightVector = [-this.view.width/2,this.view.height/2,-this.view.Depth];
-    this.light = new Light(this.lightVector, this.view.Depth);
-    this.alpha = 255;
-
   }
 
   add(geometry) {
@@ -70,7 +58,8 @@ export class SciMonk {
           }
         }else{
           //this.fill(triangle, geometry.colour, geometry.id);
-          //this.cross(point, 20, [255,1,1,255]);
+          //this.view.nodeVector(triangle.origin(), point, [100,50,50,250]);
+          //this.view.cross(point, 20, [255,1,1,255]);
         }
       }
     }
@@ -106,15 +95,8 @@ export class SciMonk {
   }
 
 
-  cross=function(node,w,colour){
-    w = w/2;
-    this.nodeVector([node[0]-w,node[1],node[2]],[node[0]+w,node[1],node[2]], colour, false);
-    this.nodeVector([node[0],node[1]-w,node[2]],[node[0],node[1]+w,node[2]], colour, false);
-    this.nodeVector([node[0],node[1],node[2]-w],[node[0],node[1],node[2]+w], colour, false);
-  }
 
-
-  parseSTL(arrayBuffer){
+  parseSTL(arrayBuffer, colour){
     // Header (80 bytes) and number of triangles (4 bytes) 0 - 83
     // Each triangle is 50 bytes unit vector (12 bytes), 3 points (12 bytes), and attribute count (2 bytes)
     const result = new Array();
@@ -125,7 +107,7 @@ export class SciMonk {
       result.push(triangle);
 
     }
-    return new Geometry(result, "imported_stl", [1,1,1,255], 1);
+    return new Geometry(result, "imported_stl", colour, 1);
   }
 
   writeSTL(){
