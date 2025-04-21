@@ -29,7 +29,8 @@
 
     <!-- Add gif.js -->
     <script src="node_modules/gif.js/dist/gif.js"></script>
-
+    <script src="node_modules/@ffmpeg/ffmpeg/dist/umd/ffmpeg.js"></script>
+    <script src="node_modules/@ffmpeg/core/dist/umd/ffmpeg-core.js"></script>
     <!-- 3d -->
     <script type="module">
       import { init } from './src/editor.js';
@@ -67,6 +68,10 @@
             <div class="container">
               <label>Triangles:</label>
               <input type="text" id="triangles" readonly />
+            </div>
+            <div class="container">
+              <label>Drawn triangles:</label>
+              <input type="text" id="drawnTriangles" readonly />
             </div>
           </div>
         </div>

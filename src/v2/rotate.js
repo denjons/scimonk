@@ -10,8 +10,12 @@ const uv = new Float32Array([0,0,0]);
 
 const ve = new Float32Array([0,0,0]);
 
+const rotatedNode = new Float32Array(3);
+
 export function rotateNode(node,rad,origo){
-  let rotatedNode = [...node];
+  rotatedNode[0] = node[0];
+  rotatedNode[1] = node[1];
+  rotatedNode[2] = node[2];
   
   // XZ rotation
   if(rad[0] !== 0){
@@ -67,7 +71,7 @@ export function rotateNode(node,rad,origo){
     rotatedNode[2] = origo[2] + xyRot[2];
   }
   
-  return rotatedNode;
+  return rotatedNode.slice();
 }
 
 export function Ab(A,v){

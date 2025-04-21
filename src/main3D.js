@@ -1,18 +1,22 @@
 import { Geometry, Triangle } from './geometry.js';
 import { DrawModes } from './modes.js';
 import { Plane } from './v2/plane.js';
-import { Light } from './v2/light.js';
+import { Light, LightSource } from './v2/light.js';
 
 export class SciMonk {
   view;
   drawModes = new DrawModes(true, true, false);
   plane = new Plane([-1000,-1000,1000,0,1000,1000,1000,-1000,1000], {width: 5000});
-  light = new Light(new Plane([-1000,-1000,-1000,0,1000,-1000,1000,-1000,-1000], {width: 10000}));
 
-  constructor(view, drawModes) {
+  constructor(view, drawModes, light) {
     this.model = new Object();
     this.model.geometries = new Array();
     this.view = view;
+    this.light = light || new Light(
+    [
+      new LightSource(new Plane([1000,-1000,-500, 1000,1000,0, 1000,-1000,500], {width: 10000}), [200,200,200,255]),
+    ], 
+    {shadow: [0,0,0]});
 
     if(drawModes){
       this.drawModes = drawModes;
@@ -34,8 +38,17 @@ export class SciMonk {
     }
   }
 
+  scale(vector) {
+    for(let geometry of this.model.geometries){
+      geometry.scale(vector);
+    }
+  }
+
+  triangles = 0;
+
   render(){
     this.view.reset();
+    this.triangles = 0;
     for(let geometry of this.model.geometries) {
       for(let triangle of geometry.triangles) {
         //this.view.nodeVector(triangle.normalVector[0], triangle.normalVector[1],[100,50,50,250],false);
@@ -45,6 +58,7 @@ export class SciMonk {
         }
         if(!point){
           if(geometry.drawModes ? geometry.drawModes.fill : this.drawModes.fill){
+            this.triangles++;
             var colour = this.light.setLight(triangle, this.drawModes.fillColour ? this.drawModes.fillColour : geometry.colour);
             this.view.fill(triangle, colour, geometry.id);
           }

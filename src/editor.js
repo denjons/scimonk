@@ -1,18 +1,40 @@
 import { SciMonk } from './main3D.js';
-import { ScimonkGifView, ScimonkView} from './views.js';
+import { ScimonkView} from './views.js';
+import { GifFilter} from './filters/gif-filter.js';
+import { VideoFilter} from './filters/video-filter.js';
 import { DrawModes } from './modes.js';
 import { BroccoliFactory } from './things/broccoli.js';
 import { createBag } from './things/bag.js';
 import { Geometry } from './geometry.js';
 import { TextUtils } from './textUtils.js';
+import { Light, LightSource } from './v2/light.js';
+import { Plane } from './v2/plane.js';
 
 let sciMonk;
-let drawModes;
-let view;
+let drawModes = new DrawModes(true, false);
+let gifFilter = new GifFilter({delay: 40});
+let videoFilter = new VideoFilter(document.getElementById("canvas"), {
+  fps: 60, 
+  mimeType: "video/webm; codecs=vp9", 
+  fileName: "video.webm"
+  //mimeType: "video/mp4;",
+  //fileName: "video.mp4"
+});
+let view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [230,230,230,255], filters: [
+  videoFilter
+]});
 let running = true;
 let bag;
 let box;
 let sphere;
+let light = new Light(
+    [
+      new LightSource(new Plane([1000,-1000,-500, 1000,1000,0, 1000,-1000,500], {width: 10000}), [200,-25,-25,200]),
+      new LightSource(new Plane([-1000,-1000,-500, -1000,1000,0, -1000,-1000,500], {width: 10000}), [-25,200,-25,200])
+    ], 
+    {shadow: [0,0,0,255]});
+
+let  stlScale = [6,6,6];
 
 // Function to update the triangle count display
 function updateTriangleCount() {
@@ -21,6 +43,10 @@ function updateTriangleCount() {
     totalTriangles += geometry.triangles.length;
   }
   document.getElementById('triangles').value = totalTriangles;
+}
+
+function updateDrawnTriangles() {
+  document.getElementById('drawnTriangles').value = sciMonk.triangles;
 }
 
 // File handling functions
@@ -58,12 +84,15 @@ function readStlFile(event) {
 }
 
 function parseSTL(arrayBuffer) {
-  const geometry = sciMonk.parseSTL(arrayBuffer, [200,200,200,255]);
+  const geometry = sciMonk.parseSTL(arrayBuffer, [150,150,150,255]);
   geometry.center([0,0,0]);
-  geometry.scale([6,6,6]);
   geometry.rotate([0,Math.PI/2,0]);
   geometry.rotate([Math.PI/2,0,0]);
+  geometry.scale(stlScale);
   sciMonk.add(geometry);
+  //TODO: fix
+  videoFilter.start();
+  runEmpty();
 }
 
 function readJsonfILe(event) {
@@ -170,7 +199,7 @@ function initBroccoli(){
   sciMonk = new SciMonk(view, drawModes);
 
   // broccoli
-  const broccoliFactory = new BroccoliFactory(30, 15, 6, [50,200,50,255], 1);
+  const broccoliFactory = new BroccoliFactory(30, 15, 6, [25,25,25,255], 1);
   const broccoli = broccoliFactory.createBroccoli([0,50,0], [100,100,100]);
   sciMonk.add(broccoli);
 
@@ -208,7 +237,6 @@ function runBroccoli(){
   }
 }
 
-
 function initBox(){
   view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [200,150,150,255], backgroundType: 'pattern'});
   drawModes = new DrawModes(true, true);
@@ -241,8 +269,6 @@ function runBox(){
   // Update render time field
   document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
   
-  
-
   if(running) {
     setTimeout(runBox, 50);
   } else {
@@ -250,85 +276,57 @@ function runBox(){
   }
 }
 
-function initSphere(){
-  view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [200,150,150,255], backgroundType: 'pattern'});
-  drawModes = new DrawModes(true, false);
-  drawModes.overrideLineColour([3,3,3,255]);
-  drawModes.overrideFillColour([170,170,170,255]);
-  sciMonk = new SciMonk(view, drawModes);
-  sphere = Geometry.sphere([0,0,0], [400,400,400], 50, 50, [200,200,200,255], 1);
-  sciMonk.add(sphere);
-  sciMonk.render();
-  running = true;
-  runSphere();
-}
-
-function runSphere(){
-  //box = box.copy();
-  //box.rotate(rott);
- // sciMonk.add(box);
-  //sphere.shakeTriangles(2);
-  let startTime = performance.now();
-  sciMonk.rotate([0.05,0,0]);
-  sciMonk.render();
-  let endTime = performance.now();
-  let timeTaken = endTime - startTime;
-  
-  // Update render time field
-  document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
-  
-  // Update triangle count
-  updateTriangleCount();
-  
-  if(running) {
-    setTimeout(runSphere, 25);
-  }
-}
-
 function initEmpty(){
-  view = new ScimonkView(document.getElementById("canvas"), 75);
-  drawModes = new DrawModes(true, false);
   drawModes.overrideLineColour([3,3,3,255]);
-  sciMonk = new SciMonk(view, drawModes);
-  runEmpty();
+  sciMonk = new SciMonk(view, drawModes, light);
+  sciMonk.addText("sciMonk", {fontFamily: 'Arial', fontSize: 256, fontWeight: 'bold', textColor: [3,3,3,255], position: [250, 850]});
+  sciMonk.addText("{@dhoc Rendering}", {fontFamily: 'Helvetica', fontSize: 150, fontWeight: 'normal', textColor: [200,200,3,255], position: [115, 1000]});
+  //sciMonk.render();
+  
 }
 
 function runEmpty(){
   let startTime = performance.now();
   sciMonk.rotate([0.05,0,0]);
   sciMonk.render();
+  updateDrawnTriangles();
   let endTime = performance.now();
   let timeTaken = endTime - startTime;
   document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
   if(running) {
     setTimeout(runEmpty, 25);
+  }else{
+    view.finish();
   }
 }
 
 
-function initText(){
-  view = new ScimonkView(document.getElementById("canvas"), 75);
-  drawModes = new DrawModes(false, true);
+function init3DText(){
+  view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [255,255,255,255]});
+  drawModes = new DrawModes(true, false);
+  drawModes.overrideSkipBackFacingTriangles(false);
   sciMonk = new SciMonk(view, drawModes);
-  const text = new TextUtils({fontSize: 64, fontWeight: 'bold' });
-  const text2 = text.textTo3D("10杯", [10, 10, 10], [3,3,3,255], 1);
-  text2.scale([0.5,0.5,0.5]);
+  const text = new TextUtils({fontSize: 46, fontWeight: 'bold' });
+  const text2 = text.textTo3D("Junqi Wang", [10, 10, 10], [3,3,3,255], 1);
+  text2.scale([0.2,0.2,0.2]);
   sciMonk.add(text2);
+  const box = Geometry.box([0,150,0], [100,100,100], [200,200,200,255], 1);
+  sciMonk.add(box);
   sciMonk.render();
   running = true;
   updateTriangleCount();
-  runText();
+  run3DText();
 }
 
-function runText(){
+function run3DText(){
   let startTime = performance.now();
-  sciMonk.rotate([0.05,0,0]);
+  sciMonk.rotate([0.05,0.05,0.05]);
   sciMonk.render();
   let endTime = performance.now();
   let timeTaken = endTime - startTime;
   document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
   if(running) {
-    setTimeout(runText, 25);
+    setTimeout(run3DText, 25);
   } else {
     view.finish();
   } 
@@ -343,12 +341,12 @@ export function init(){
   document.getElementById('triangles').value = '0';
   
   //initBag();
-  initBroccoli();
+  //initBroccoli();
   //initBox();
   //initGridBox();
   //initSphere();
-  //initEmpty();
-  //initText();
+  initEmpty();
+  //init3DText();
 }
 
 

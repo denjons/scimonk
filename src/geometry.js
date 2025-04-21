@@ -12,21 +12,7 @@ import {
 // Helper functions
 /**
  * Creates a box geometry
- * @param {number} x - The x coordinate of the box
- * @param {number} y - The y coordinate of the box
- * @param {number} z - The z coordinate of the box
- * @param {number} w - The width of the box
- * @param {number} h - The height of the box
- * @param {number} d - The depth of the box
- * @param {Object} faces - Object specifying which faces to include
- * @param {boolean} [faces.front=true] - Whether to include the front face
- * @param {boolean} [faces.back=true] - Whether to include the back face
- * @param {boolean} [faces.left=true] - Whether to include the left face
- * @param {boolean} [faces.right=true] - Whether to include the right face
- * @param {boolean} [faces.top=true] - Whether to include the top face
- * @param {boolean} [faces.bottom=true] - Whether to include the bottom face
- * @returns {Array}
- */
+*/
 function boxTriangles(x, y, z, w, h, d, faces = {}) {
   // Default all faces to true if not specified
   const {
@@ -149,32 +135,6 @@ export function gridToTriangles(grid, triangles, levels){
   }
 
 
-}
-
-function rightHandTriangle(a, b, c) {
-  let x = Math.max(a[0],Math.max(b[0], c[0]));
-  if(a[0] == x){
-    let y = Math.max(b[1], c[1]);
-    if(b[1] == y) {
-      return [a, b, c];
-    }else{
-      return [a, c, b];
-    }
-  }else if(b[0] == x){
-    let y = Math.max(b[1], c[1]);
-    if(a[1] == y) {
-      return [b, a, c];
-    }else{
-      return [b, c, a];
-    }
-  }else if(c[0] == x){
-    let y = Math.max(b[1], c[1]);
-    if(a[1] == y) {
-      return [c, a, b];
-    }else{
-      return [c, b, a];
-    }
-  }
 }
 
 export class Triangle {
@@ -315,16 +275,6 @@ export class Geometry {
       const tOrigin = triangle.origin();
       const oNormal = unitVector(tOrigin, origin);
       const tNormal = triangle.normal();
-      /*
-      tNormal[0] = tNormal[0]*(sign(oNormal[0])*-1);
-      tNormal[1] = tNormal[0]*(sign(oNormal[1])*-1);
-      tNormal[2] = tNormal[0]*(sign(oNormal[2])*-1);
-      */
-     /* 
-      tNormal[0] *= sign(oNormal[0]);
-      tNormal[1] *= sign(oNormal[1]);
-      tNormal[2] *= sign(oNormal[2]);
-      */
 
       tNormal[0] *= tNormal[0] == 0 ? 0 : sign(tNormal[0])==sign(oNormal[0]) ? -1:1;
       tNormal[1] *= tNormal[1] == 0 ? 0 : sign(tNormal[1])==sign(oNormal[1]) ? -1:1;
