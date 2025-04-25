@@ -1,6 +1,5 @@
-import { Geometry } from '../geometry.js';
-import { gridToTriangles } from '../geometry.js';
-import { Vx } from '../graph.js';
+import { Geometry, gridToTriangles} from '../v3/geometry.js';
+
 function createBag(x, y, z, w, h, d, colour, id){
   w=w/2;
   h=h/2;

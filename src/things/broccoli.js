@@ -1,4 +1,4 @@
-import { Geometry } from '../geometry.js';
+import { Geometry } from '../v3/geometry.js';
 import { Vx } from '../graph.js';
 
 export class BroccoliFactory {

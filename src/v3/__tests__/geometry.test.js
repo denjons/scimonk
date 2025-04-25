@@ -122,6 +122,33 @@ describe('Geometry', () => {
       }
     });
   });
+
+  it('should rotate a box 360 degrees around a point and return to original position', () => {
+    const position = [0, 0, 0];
+    const size = [1, 1, 1];
+    const colour = [1, 0, 0, 1];
+    const id = 1;
+    const fullRotation = [2 * Math.PI, 2 * Math.PI, 2 * Math.PI]; // 360 degrees in radians for x, y, z
+
+    const box = Geometry.box(position, size, colour, id);
+
+    // Verify initial position
+    box.triangles.forEach(triangle => {
+      for (let i = 0; i < triangle.points.length; i++) {
+        expect(Math.abs(triangle.points[i])).toBe(0.5);
+      }
+    });
+
+    // Rotate the box 360 degrees
+    box.rotateAround(fullRotation, [0,0,0]);
+
+    box.triangles.forEach(triangle => {
+      for (let i = 0; i < triangle.points.length; i++) {
+        expect(Math.abs(triangle.points[i])).toBe(0.5);
+      }
+    });
+  });
+
   
 });
 

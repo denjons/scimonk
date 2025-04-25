@@ -33,9 +33,9 @@ export class Plane {
     
     // Calculate vector from triangle origin to plane origin
     const toPlane = [
-      this.origin[0] - triangle.normalVector[0][0],
-      this.origin[1] - triangle.normalVector[0][1],
-      this.origin[2] - triangle.normalVector[0][2]
+      this.origin[0] - triangle.normalVector[0],
+      this.origin[1] - triangle.normalVector[1],
+      this.origin[2] - triangle.normalVector[2]
     ];
     
     // Calculate dot product between triangle normal and vector to plane

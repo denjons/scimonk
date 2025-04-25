@@ -1,7 +1,7 @@
-import { Geometry, Triangle } from './geometry.js';
+import { Geometry, Triangle } from './v3/geometry.js';
 import { DrawModes } from './modes.js';
-import { Plane } from './v2/plane.js';
-import { Light, LightSource } from './v2/light.js';
+import { Plane } from './v3/plane.js';
+import { Light, LightSource } from './v3/light.js';
 
 export class SciMonk {
   view;

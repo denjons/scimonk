@@ -1,18 +1,19 @@
 import { SciMonk } from './main3D.js';
-import { ScimonkView} from './views.js';
+import { ScimonkView} from './v3/views.js';
 import { GifFilter} from './filters/gif-filter.js';
 import { VideoFilter} from './filters/video-filter.js';
 import { DrawModes } from './modes.js';
 import { BroccoliFactory } from './things/broccoli.js';
 import { createBag } from './things/bag.js';
-import { Geometry } from './geometry.js';
+import { Geometry } from './v3/geometry.js';
 import { TextUtils } from './textUtils.js';
-import { Light, LightSource } from './v2/light.js';
-import { Plane } from './v2/plane.js';
+import { Light, LightSource } from './v3/light.js';
+import { Plane } from './v3/plane.js';
 
 let sciMonk;
 let drawModes = new DrawModes(true, false);
 let gifFilter = new GifFilter({delay: 40});
+
 let videoFilter = new VideoFilter(document.getElementById("canvas"), {
   fps: 60, 
   mimeType: "video/webm; codecs=vp9", 
@@ -20,13 +21,12 @@ let videoFilter = new VideoFilter(document.getElementById("canvas"), {
   //mimeType: "video/mp4;",
   //fileName: "video.mp4"
 });
+
 let view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [230,230,230,255], filters: [
   videoFilter
 ]});
 let running = true;
 let bag;
-let box;
-let sphere;
 let light = new Light(
     [
       new LightSource(new Plane([1000,-1000,-500, 1000,1000,0, 1000,-1000,500], {width: 10000}), [200,-25,-25,200]),
@@ -35,6 +35,7 @@ let light = new Light(
     {shadow: [0,0,0,255]});
 
 let  stlScale = [6,6,6];
+let rotationVector = new Float32Array([0.05,0,0]);
 
 // Function to update the triangle count display
 function updateTriangleCount() {
@@ -238,21 +239,10 @@ function runBroccoli(){
 }
 
 function initBox(){
-  view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [200,150,150,255], backgroundType: 'pattern'});
-  drawModes = new DrawModes(true, true);
-  drawModes.overrideLineColour([3,3,3,255]);
-  sciMonk = new SciMonk(view, drawModes);
-
- // sciMonk.addText("sciMonk", {fontFamily: 'Arial', fontSize: 256, fontWeight: 'bold', textColor: [3,3,3,255], position: [275, 950]});
-
+  sciMonk = new SciMonk(view, drawModes, light);
   const box = Geometry.box([0,0,0], [150,150,150], [200,200,200,255], 1);
   sciMonk.add(box);
-  /*
-  const box2 = box.copy();
-  box2.setDrawModes(new DrawModes(false, true));
-  box2.scale([1.01,1.01,1.01]);
-  sciMonk.add(box2);
-  */
+
   sciMonk.render();
   running = true;
   updateTriangleCount();
@@ -263,14 +253,14 @@ function runBox(){
   let startTime = performance.now();  
   sciMonk.rotate([0.05,0.05,0.05]);
   sciMonk.render();
+  updateDrawnTriangles();
   let endTime = performance.now();
   let timeTaken = endTime - startTime;
-  
   // Update render time field
   document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
   
   if(running) {
-    setTimeout(runBox, 50);
+    setTimeout(runBox, 25);
   } else {
     view.finish();
   }
@@ -287,12 +277,12 @@ function initEmpty(){
 
 function runEmpty(){
   let startTime = performance.now();
-  sciMonk.rotate([0.05,0,0]);
+  sciMonk.rotate(rotationVector);
   sciMonk.render();
-  updateDrawnTriangles();
   let endTime = performance.now();
   let timeTaken = endTime - startTime;
   document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
+  updateDrawnTriangles();
   if(running) {
     setTimeout(runEmpty, 25);
   }else{
@@ -302,7 +292,6 @@ function runEmpty(){
 
 
 function init3DText(){
-  view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [255,255,255,255]});
   drawModes = new DrawModes(true, false);
   drawModes.overrideSkipBackFacingTriangles(false);
   sciMonk = new SciMonk(view, drawModes);
@@ -326,7 +315,7 @@ function run3DText(){
   let timeTaken = endTime - startTime;
   document.getElementById('renderTime').value = `${timeTaken.toFixed(2)} ms`;
   if(running) {
-    setTimeout(run3DText, 25);
+    setTimeout(run3DText, 1);
   } else {
     view.finish();
   } 

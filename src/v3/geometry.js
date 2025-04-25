@@ -1,6 +1,6 @@
 import { 
-  addV, Vx, vLen, unitVector, sign, copyArray, middle,
-  getOrigo
+   Vx, vLen, unitVector, sign, copyArray, middle,
+
 } from '../graph.js';
 
 import {

@@ -1,4 +1,4 @@
-import { Geometry } from './geometry.js';
+import { Geometry } from './v3/geometry.js';
 
 export class TextUtils {
   constructor(options = {}) {

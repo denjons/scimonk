@@ -49,7 +49,15 @@ export class VideoFilter {
   }
 
   // Creates and downloads a video file
-    finish(view) {
+  finish(view) {
       this.mediaRecorder.stop();
+  }
+
+  pause(){
+    this.mediaRecorder.pause();
+  }
+
+  resume(){
+    this.mediaRecorder.resume();
   }
 }
