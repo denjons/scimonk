@@ -1,13 +1,19 @@
 import { 
-  addV, Vx, vLen, unitVector, 
-  scale, sign, copyArray, middle,
+  addV, Vx, vLen, unitVector, sign, copyArray, middle,
   getOrigo
-} from './graph.js';
+} from '../graph.js';
 
 import {
-  rotateNode
-} from './v2/rotate.js';
+  calculateOrigin
+} from './vectors.js';
 
+import {
+  rotate
+} from './rotate.js';
+
+import {
+  scale
+} from './scale.js';
 
 // Helper functions
 /**
@@ -83,31 +89,6 @@ function squareToTriangles(square, triangles) {
   triangles.push(new Triangle([square[2], square[3], square[0]]));
 }
 
-function calculateTriangleNormal(triangle) {
-  // Extract the points of the triangle
-  const [p1, p2, p3] = triangle;
-
-  // Convert points to vectors for calculation
-  const v1 = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
-  const v2 = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
-
-  // Calculate the cross product of v1 and v2
-  const crossProduct = [
-      v1[1] * v2[2] - v1[2] * v2[1],
-      v1[2] * v2[0] - v1[0] * v2[2],
-      v1[0] * v2[1] - v1[1] * v2[0],
-  ];
-
-  // Calculate the magnitude of the cross product (to normalize it)
-  const magnitude = Math.sqrt(
-      crossProduct[0] ** 2 + crossProduct[1] ** 2 + crossProduct[2] ** 2
-  );
-
-  // Normalize the cross product to get the normal vector
-  const normal = crossProduct.map((component) => component / magnitude);
-
-  return new Float32Array(normal);
-}
 
 export function gridToTriangles(grid, triangles, levels){
 
@@ -137,51 +118,87 @@ export function gridToTriangles(grid, triangles, levels){
 
 }
 
+//TODO: improve performance by using a single Float32Array for the triangle and not a new one each time. Also, the normal vector should be stored in the triangle object. 
+function calculateTriangleNormal(triangle) {
+  // Extract the points from the flat Float32Array
+  // Points are stored as [x1,y1,z1, x2,y2,z2, x3,y3,z3]
+  const p1 = [triangle[0], triangle[1], triangle[2]];
+  const p2 = [triangle[3], triangle[4], triangle[5]];
+  const p3 = [triangle[6], triangle[7], triangle[8]];
+
+  // Convert points to vectors for calculation
+  const v1 = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]];
+  const v2 = [p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]];
+
+  // Calculate the cross product of v1 and v2
+  const crossProduct = [
+      v1[1] * v2[2] - v1[2] * v2[1],
+      v1[2] * v2[0] - v1[0] * v2[2],
+      v1[0] * v2[1] - v1[1] * v2[0],
+  ];
+
+  // Calculate the magnitude of the cross product (to normalize it)
+  const magnitude = Math.sqrt(
+      crossProduct[0] ** 2 + crossProduct[1] ** 2 + crossProduct[2] ** 2
+  );
+
+  // Normalize the cross product to get the normal vector
+  const normal = crossProduct.map((component) => component / magnitude);
+
+  return new Float32Array(normal);
+}
+
 export class Triangle {
   constructor(points) {
-    this.points = points;
-    this.normalVector = [];
+    this.points = new Float32Array([points[0][0], points[0][1], points[0][2], points[1][0], points[1][1], points[1][2], points[2][0], points[2][1], points[2][2]]);
+    this.normalVector = new Float32Array(6);
+    this.origin = new Float32Array(3);
+    this.unitVector = new Float32Array(3);
+  }
+
+  getOrigin() { 
+    calculateOrigin(this.points, this.origin);
+    return this.origin.slice(0, 3);
   }
 
   normal(){
-    const v = calculateTriangleNormal(this.points);
-    this.setNormal(v);  
-    return v;
+    this.unitVector = calculateTriangleNormal(this.points);
+    this.setNormal(this.unitVector);
+    return this.unitVector;
   }
 
-  unitVector(){
-    return unitVector(this.normalVector[0], this.normalVector[1]);
-  }
-
-  origin() {
-    return getOrigo(this.points);
+  // Only used when the geomtry is imported from an STL file. Otherwise the normal vector is calculated from the points.
+  setNormal(vector){
+    this.getOrigin();
+    this.unitVector = new Float32Array(vector);
+    this.normalVector[0] = this.origin[0];
+    this.normalVector[1] = this.origin[1];
+    this.normalVector[2] = this.origin[2];
+    this.normalVector[3] = this.origin[0] + this.unitVector[0]*10;
+    this.normalVector[4] = this.origin[1] + this.unitVector[1]*10;
+    this.normalVector[5] = this.origin[2] + this.unitVector[2]*10;
   }
 
   scale(origin, vector) {
-    this.normalVector[0] = scale(this.normalVector[0], origin, vector);
-    this.normalVector[1] = scale(this.normalVector[1], origin, vector);
-    for(let i=0;i<this.points.length;i++){
-      this.points[i] = scale(this.points[i], origin, vector);
+    scale(this.normalVector, origin, vector);
+    scale(this.points, origin, vector);
+  }
+
+  rotate(origin, vector) {
+    rotate(this.normalVector, vector, origin);
+    rotate(this.points, vector, origin);
+  }
+
+  translate(vector){
+    for(let i=0; i<this.points.length/3; i++){
+      this.points[i*3+0] += vector[0];
+      this.points[i*3+1] += vector[1];
+      this.points[i*3+2] += vector[2];
     }
-  }
-
-  rotate(origin, vector){
-    this.normalVector[0] = rotateNode(this.normalVector[0], vector, origin);
-    this.normalVector[1] = rotateNode(this.normalVector[1], vector, origin);
-    for(let j=0; j<this.points.length; j++){
-      this.points[j] = rotateNode(this.points[j], vector, origin);  
-    }
-  }
-
-  setNormal(vector){
-    const origin = this.origin();
-    this.normalVector[0] = origin;
-    this.normalVector[1] = addV(origin, Vx(vector, 10));
-  }
-
-  translate1(vector){
-    for(let i=0; i<this.points.length; i++){
-      this.points[i] = addV(this.points[i], vector);
+    for(let i=0; i<this.normalVector.length/3; i++){
+      this.normalVector[i*3+0] += vector[0];
+      this.normalVector[i*3+1] += vector[1];
+      this.normalVector[i*3+2] += vector[2];
     }
   }
 
@@ -194,7 +211,6 @@ export class Triangle {
    * Example usage:
    * const triangle = new Triangle([[1, 2, 3], [4, 5, 6], [7, 8, 9]]);
    * const projected = triangle.project([1, 0, 0], [0, 1, 0]);
-   * console.log(projected.points); // Points projected onto the plane
    */
   project(planeVector1, planeVector2) {
     const planeNormal = calculateTriangleNormal([planeVector1, planeVector2, [0, 0, 0]]);
@@ -221,6 +237,7 @@ export class Triangle {
 
 
 export class Geometry {
+  origin = new Float32Array(3);
   constructor(triangles, type, colour, id) {
     this.triangles = triangles;
     this.type = type;
@@ -232,47 +249,42 @@ export class Geometry {
     this.drawModes = drawModes;
   }
 
-  origin(){
-    var res = new Array();
-    for(let triangle of this.triangles){
-      res.push(triangle.origin());
+  getOrigin(){
+    const res = new Float32Array(this.triangles.length*3);
+    for(let i=0; i<this.triangles.length; i++){
+      const origin = this.triangles[i].getOrigin();
+      res[i*3+0] = origin[0];
+      res[i*3+1] = origin[1];
+      res[i*3+2] = origin[2];
     }
-    return getOrigo(res);	
+    return calculateOrigin(res, this.origin);	
   }
 
   scale(vector) {
-    const origin = this.origin();
+    const origin = this.getOrigin();
     for(let triangle of this.triangles){
       triangle.scale(origin, vector);
     }
   }
 
   rotate(vector){
-    this.rotateAround(vector, this.origin());
+    this.rotateAround(vector, this.getOrigin());
   }
 
   rotateAround(vector, origin){
     for(let triangle of this.triangles ){
-      triangle.normalVector[0] = rotateNode(triangle.normalVector[0], vector, origin);
-      triangle.normalVector[1] = rotateNode(triangle.normalVector[1], vector, origin);
-      for(let j=0; j<triangle.points.length; j++){
-        triangle.points[j] = rotateNode(triangle.points[j], vector, origin);
-      }
+      triangle.rotate(origin, vector);
     }
   }
 
   translate(vector){
     for(let triangle of this.triangles){
-      triangle.normalVector[0] = addV(triangle.normalVector[0], vector);
-      triangle.normalVector[1] = addV(triangle.normalVector[1], vector);
-      for(let i=0; i<triangle.points.length; i++){
-        triangle.points[i] = addV(triangle.points[i], vector);
-      }
+      triangle.translate(vector);
     }
   }
 
   center(vector){
-    const origin = this.origin();
+    const origin = this.getOrigin();
     const uv = unitVector(origin, vector);
     const len = vLen(origin, vector);
     const delta = Vx(uv, len);
@@ -280,9 +292,9 @@ export class Geometry {
   }
 
   computeNormals(){
-    const origin = this.origin();
+    const origin = this.getOrigin();
     for(let triangle of this.triangles) {
-      const tOrigin = triangle.origin();
+      const tOrigin = triangle.getOrigin();
       const oNormal = unitVector(tOrigin, origin);
       const tNormal = triangle.normal();
 
