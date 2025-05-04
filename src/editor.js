@@ -1,5 +1,6 @@
 import { SciMonk } from './main3D.js';
-import { ScimonkView} from './v3/views.js';
+import { ScimonkView} from './v3/canvas-view.js';
+//import { ScimonkViewGL} from './v3/gl-view.js';
 import { GifFilter} from './filters/gif-filter.js';
 import { VideoFilter} from './filters/video-filter.js';
 import { DrawModes } from './modes.js';
@@ -25,6 +26,13 @@ let videoFilter = new VideoFilter(document.getElementById("canvas"), {
 let view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [230,230,230,255], filters: [
   videoFilter
 ]});
+
+/*
+let view = new ScimonkViewGL(document.getElementById("canvas"), {backgroundColour: [230,230,230,255], filters: [
+  //videoFilter
+]});
+*/
+
 let running = true;
 let bag;
 let light = new Light(
@@ -269,8 +277,8 @@ function runBox(){
 function initEmpty(){
   drawModes.overrideLineColour([3,3,3,255]);
   sciMonk = new SciMonk(view, drawModes, light);
-  sciMonk.addText("sciMonk", {fontFamily: 'Arial', fontSize: 256, fontWeight: 'bold', textColor: [3,3,3,255], position: [250, 850]});
-  sciMonk.addText("{@dhoc Rendering}", {fontFamily: 'Helvetica', fontSize: 150, fontWeight: 'normal', textColor: [200,200,3,255], position: [115, 1000]});
+  //sciMonk.addText("sciMonk", {fontFamily: 'Arial', fontSize: 256, fontWeight: 'bold', textColor: [3,3,3,255], position: [250, 850]});
+  //sciMonk.addText("{@dhoc Rendering}", {fontFamily: 'Helvetica', fontSize: 150, fontWeight: 'normal', textColor: [200,200,3,255], position: [115, 1000]});
   //sciMonk.render();
   
 }

@@ -248,6 +248,13 @@ export class ScimonkView {
       const len = Math.sqrt(this.luv[0] * this.luv[0] + this.luv[1] * this.luv[1])*1;
       this.lw = (this.z2 - this.z1)/len;
 
+      /*
+      this.co[0] = 255*Math.random();
+      this.co[1] = 255*Math.random();
+      this.co[2] = 255*Math.random();
+      this.co[3] = 255;
+      */
+
       for(let t = 0; t < len; t++) {
         this.lx = this.x1 + this.luv[0]/len * t|0;
         this.ly = this.y1 + this.luv[1]/len * t|0;

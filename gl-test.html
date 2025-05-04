@@ -1,0 +1,150 @@
+<canvas id="glCanvas" width="500" height="500"></canvas>
+<script>
+const canvas = document.getElementById('glCanvas');
+const gl = canvas.getContext('webgl');
+
+if (!gl) {
+  console.error("WebGL not supported");
+}
+
+// Shaders
+const vsSource = `
+  attribute vec2 aPosition;
+  attribute vec4 aColor;
+  varying vec4 vColor;
+  void main() {
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+    vColor = aColor;
+  }
+`;
+
+const fsSource = `
+  precision mediump float;
+  varying vec4 vColor;
+  void main() {
+    gl_FragColor = vColor;
+  }
+`;
+
+function compileShader(source, type) {
+  const shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    throw new Error(gl.getShaderInfoLog(shader));
+  }
+  return shader;
+}
+
+const vertexShader = compileShader(vsSource, gl.VERTEX_SHADER);
+const fragmentShader = compileShader(fsSource, gl.FRAGMENT_SHADER);
+
+const program = gl.createProgram();
+gl.attachShader(program, vertexShader);
+gl.attachShader(program, fragmentShader);
+gl.linkProgram(program);
+if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+  throw new Error(gl.getProgramInfoLog(program));
+}
+gl.useProgram(program);
+
+// ATTRIBUTES
+const positionLocation = gl.getAttribLocation(program, 'aPosition');
+const colorLocation = gl.getAttribLocation(program, 'aColor');
+
+// === Batch builder class ===
+class TriangleBatch {
+  constructor(maxTriangles) {
+    this.maxTriangles = maxTriangles;
+    this.vertices = new Float32Array(maxTriangles * 3 * (2 + 4)); // 3 vertices, 2 pos + 4 color
+    this.index = 0;
+
+    this.buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+
+    const stride = (2 + 4) * Float32Array.BYTES_PER_ELEMENT;
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, stride, 0);
+    gl.enableVertexAttribArray(colorLocation);
+    gl.vertexAttribPointer(colorLocation, 4, gl.FLOAT, false, stride, 2 * Float32Array.BYTES_PER_ELEMENT);
+  }
+
+  clear() {
+    this.index = 0;
+  }
+
+  addTriangle(x1, y1, x2, y2, x3, y3, color) {
+    const [r, g, b, a] = color;
+    const v = this.vertices;
+
+    // Vertex 1
+    v[this.index++] = x1;
+    v[this.index++] = y1;
+    v[this.index++] = r;
+    v[this.index++] = g;
+    v[this.index++] = b;
+    v[this.index++] = a;
+
+    // Vertex 2
+    v[this.index++] = x2;
+    v[this.index++] = y2;
+    v[this.index++] = r;
+    v[this.index++] = g;
+    v[this.index++] = b;
+    v[this.index++] = a;
+
+    // Vertex 3
+    v[this.index++] = x3;
+    v[this.index++] = y3;
+    v[this.index++] = r;
+    v[this.index++] = g;
+    v[this.index++] = b;
+    v[this.index++] = a;
+  }
+
+  upload() {
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this.vertices.subarray(0, this.index), gl.DYNAMIC_DRAW);
+  }
+
+  draw() {
+    gl.drawArrays(gl.TRIANGLES, 0, this.index / (2 + 4));
+  }
+}
+
+// Create batch
+const batch = new TriangleBatch(10000); // Max 10,000 triangles
+
+// === Main Render Loop ===
+function render() {
+  batch.clear();
+
+  // Add many triangles dynamically
+  const NUM_TRIANGLES = 1000;
+
+  for (let i = 0; i < NUM_TRIANGLES; i++) {
+    const cx = Math.random() * 2 - 1;
+    const cy = Math.random() * 2 - 1;
+    const size = Math.random() * 0.03;
+    const color = [Math.random(), Math.random(), Math.random(), 1.0];
+
+    batch.addTriangle(
+      cx - size, cy - size,
+      cx + size, cy - size,
+      cx,        cy + size,
+      color
+    );
+  }
+
+  batch.upload();
+
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
+  batch.draw();
+
+  requestAnimationFrame(render);
+}
+
+render();
+</script>
