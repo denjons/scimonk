@@ -80,6 +80,12 @@ export class SciMonk {
     this.view.update();
   }
 
+  shake(scale){
+    for(let geometry of this.model.geometries){
+      geometry.shakeTriangles(scale);
+    }
+  }
+
 
   /*
     X TO GRAPH

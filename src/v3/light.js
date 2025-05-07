@@ -30,7 +30,7 @@ export class Light {
         this.resultColour[0] = Math.max(Math.min(this.resultColour[0] + (colour[0] * brightness) + (lightSource.colour[0]*brightness), 255), 0);
         this.resultColour[1] = Math.max(Math.min(this.resultColour[1] + (colour[1] * brightness) + (lightSource.colour[1]*brightness), 255), 0);
         this.resultColour[2] = Math.max(Math.min(this.resultColour[1] + (colour[2] * brightness) + (lightSource.colour[2]*brightness), 255), 0);
-        this.resultColour[3] = 255 - (lightSource.colour[3]*brightness)
+        this.resultColour[3] = 255;// - (lightSource.colour[3]*brightness)
     
       }
     }

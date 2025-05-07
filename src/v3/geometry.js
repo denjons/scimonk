@@ -1,5 +1,5 @@
 import { 
-   Vx, vLen, unitVector, sign, copyArray, middle,
+   Vx, vLen, unitVector, sign, middle,
 
 } from '../graph.js';
 
@@ -336,11 +336,7 @@ export class Geometry {
     scale = Math.ceil(scale*Math.random());
     for(let triangle of this.triangles){
       for(var i = 0 ; i < triangle.points.length; i++) {
-        var point = copyArray(triangle.points[i]);
-        point[0] += (point[2]%scale)*sign(point[0]);
-        point[1] += (point[0]%scale)*sign(point[1]);
-        point[2] += (point[1]%scale)*sign(point[2]);
-        triangle.points[i] = point;
+        triangle.points[i] += (triangle.points[i]%scale)*sign(triangle.points[i]);
       }
     }
   }

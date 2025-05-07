@@ -15,15 +15,19 @@ let sciMonk;
 let drawModes = new DrawModes(true, false);
 let gifFilter = new GifFilter({delay: 40});
 
-let videoFilter = new VideoFilter(document.getElementById("canvas"), {
-  fps: 60, 
-  mimeType: "video/webm; codecs=vp9", 
-  fileName: "video.webm"
-  //mimeType: "video/mp4;",
-  //fileName: "video.mp4"
+
+const videoFilter = new VideoFilter(document.getElementById("canvas"), {
+    //mimeType: 'video/mp4;', 
+    //imageType: 'image/jpeg', 
+    //fileName: 'video.mp4',
+    mimeType: "video/webm; codecs=vp9", 
+    fileName: "video.webm",
+    imageType: 'image/webm', 
+    videoBitsPerSecond: 8000000,
+    fps: 60                                  
 });
 
-let view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [230,230,230,255], filters: [
+let view = new ScimonkView(document.getElementById("canvas"), {backgroundColour: [200,200,200,255], backgroundType: 'random', filters: [
   videoFilter
 ]});
 
@@ -42,7 +46,7 @@ let light = new Light(
     ], 
     {shadow: [0,0,0,255]});
 
-let  stlScale = [6,6,6];
+let  stlScale = [2,2,2];
 let rotationVector = new Float32Array([0.05,0,0]);
 
 // Function to update the triangle count display
@@ -286,6 +290,7 @@ function initEmpty(){
 function runEmpty(){
   let startTime = performance.now();
   sciMonk.rotate(rotationVector);
+  
   sciMonk.render();
   let endTime = performance.now();
   let timeTaken = endTime - startTime;
